@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\StudentTutor;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -33,8 +34,9 @@ class UserSeeder extends Seeder
         }
 
         // Create Tutor Users
+        $tutors = [];
         for ($i = 1; $i <= 3; $i++) {
-            User::create([
+        $tutors[] = User::create([
                 'name' => "Tutor $i",
                 'email' => "tutor$i@example.com",
                 'role' => 'tutor',
@@ -43,15 +45,30 @@ class UserSeeder extends Seeder
             ]);
         }
 
-        // Create 40 Student Users
-        for ($i = 1; $i <= 40; $i++) {
-            User::create([
+        // Create 70 Student Users
+        $students = [];
+        for ($i = 1; $i <= 70; $i++) {
+            $students[] = User::create([
                 'name' => "Student $i",
                 'email' => "student$i@example.com",
                 'role' => 'student',
                 'password' => Hash::make('password123'),
                 'profile_picture' => getRandomProfilePicture('student', $i)
             ]);
+        }
+
+        $tutors = collect($tutors);
+        $students = collect($students)->shuffle();
+
+        foreach($tutors as $tutor){
+            $studentsToAssign = $students->splice(0, rand(10,15));
+        
+            foreach($studentsToAssign as $student){
+                StudentTutor::create([
+                    'student_id' => $student->id,
+                    'tutor_id' => $tutor->id,
+                ]);
+            }
         }
     }
 }
