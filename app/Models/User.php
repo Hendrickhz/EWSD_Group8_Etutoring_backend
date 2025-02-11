@@ -48,4 +48,12 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function students(){
+        return $this->hasMany(StudentTutor::class,'tutor_id');
+    }
+
+    public function tutors(){
+        return $this->hasOne(StudentTutor::class,'student_id');
+    }
 }
