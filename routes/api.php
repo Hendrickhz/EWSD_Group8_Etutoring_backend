@@ -29,6 +29,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/student/tutor-info', 'getTutorInfoForStudent')->withoutMiddleware(StaffOnly::class);
         Route::delete('/remove-tutor', 'removeTutorFromStudent');
     });
+
+    // Schedule, Rearrange Meetings
+    Route::controller(MeetingController::class)->group(function () {
+        Route::post('/meetings/create', 'createMeeting');
+        Route::post('/meetings/request', 'requestMeeting');
+        Route::patch('/meetings/{id}/update', 'updateMeeting');
+        Route::get('/student/meetings', 'getStudentMeetings');
+        Route::get('/tutor/meetings', 'getTutorMeetings');
+
+        //for staff
+        Route::get('/staff/meetings', 'getAllMeetings');
+        Route::get('/staff/tutor/{tutorId}/meetings', 'getTutorMeetingsForStaff');
+        Route::get('/staff/student/{studentId}/meetings', 'getStudentMeetingsForStaff');
+    });
 });
 
 // Authentication
