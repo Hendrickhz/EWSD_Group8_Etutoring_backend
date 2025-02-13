@@ -148,4 +148,17 @@ class AllocationController extends Controller
             return response()->json(['message' => 'No Tutor found for this student.'], 404);
         }
     }
+
+    /**
+     * Get the assigned tutor info for the login student
+     */
+    public function getTutorInfoForStudent()
+    {
+        $user = auth()->user();
+        if ($user->role !== 'student') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        $tutor = User::find($user->tutors->tutor_id);
+        return response()->json(['tutor' => $tutor]);
+    }
 }
