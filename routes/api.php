@@ -25,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::controller(MeetingController::class)->group(function () {
         Route::post('/meetings/create', 'createMeeting');
         Route::post('/meetings/request', 'requestMeeting');
+        Route::get('/meetings/{meeting_id}', 'getMeetingDetails');
         Route::patch('/meetings/{id}/update', 'updateMeeting');
         Route::get('/student/meetings', 'getStudentMeetings');
         Route::get('/tutor/meetings', 'getTutorMeetings');

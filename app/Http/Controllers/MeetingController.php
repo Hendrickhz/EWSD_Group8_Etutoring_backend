@@ -105,6 +105,18 @@ class MeetingController extends Controller
     }
 
     /**
+     * Get the detail information of a single meeting
+     */
+    public function getMeetingDetails($meeting_id)
+    {
+        $meeting = Meeting::where('id',$meeting_id)->with('tutor','student')->get();
+        if(!$meeting){
+            return response()->json(['message' => 'Meeting not found'], 404);
+        }
+        return response()->json(['meeting'=>$meeting]);
+    }
+
+    /**
      * Update the meeting information by the tutor
      */
     public function updateMeeting(Request $request, $id)
@@ -230,8 +242,8 @@ class MeetingController extends Controller
         }
 
         $student = User::find($studentId);
-        if($student->role !== 'student'){
-            return response()->json(['message'=>'Invalid student'],404);
+        if ($student->role !== 'student') {
+            return response()->json(['message' => 'Invalid student'], 404);
         }
 
         // $meetings = Meeting::where('student_id',12)->with('tutor')->orderBy('date','desc')->get();
