@@ -3,6 +3,7 @@
 use App\Http\Controllers\AllocationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\StaffController;
 use App\Http\Middleware\StaffOnly;
 use Illuminate\Http\Request;
@@ -28,6 +29,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/tutor/{id}/students', 'getTutorStudents');
         Route::get('/student/tutor-info', 'getTutorInfoForStudent')->withoutMiddleware(StaffOnly::class);
         Route::delete('/remove-tutor', 'removeTutorFromStudent');
+    });
+
+    // Messages
+    Route::controller(MessageController::class)->group(function () {
+        Route::post('/messages/send', 'sendMessage');
+        Route::put('/messages/{message_id}', 'updateMessage');
+        Route::delete('/messages/{message_id}', 'deleteMessage');
+        Route::get('/messages/users/{user_id}', 'getMessages');
+        Route::get('/messages/unread/count', 'getUnreadMessagesCount');
+        Route::get('/messages/unread/count/{user_id}', 'getUnreadMessagesCountByUser');
+        Route::post('/messages/read/{user_id}', 'markAsRead');
     });
 });
 
