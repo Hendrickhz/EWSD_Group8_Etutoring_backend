@@ -118,18 +118,6 @@ class AllocationController extends Controller
         return response()->json(['message' => 'Bulk allocation completed successfully.']);
     }
 
-    /**
-     * Get list of students assigned to a tutor
-     */
-    public function getTutorStudents($tutor_id)
-    {
-        $students = StudentTutor::where('tutor_id', $tutor_id)->with('student')->get();
-
-        return response()->json([
-            'tutor_id' => $tutor_id,
-            'students' => $students
-        ], 200);
-    }
 
     /**
      * Remove the assigned tutor from the student
@@ -147,5 +135,65 @@ class AllocationController extends Controller
         } else {
             return response()->json(['message' => 'No Tutor found for this student.'], 404);
         }
+    }
+
+    /**
+     * Get the assigned tutor info for the login student
+     */
+    public function getTutorInfoForStudent()
+    {
+        $user = auth()->user();
+        if ($user->role !== 'student') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        $tutor = User::find($user->tutors->tutor_id);
+        return response()->json(['tutor' => $tutor]);
+    }
+
+    /**
+     * Get the list of students assigned for logged in tutor
+     */
+    public function getStudentsInfoTutor()
+    {
+        $user = auth()->user();
+        if ($user->role !== 'tutor') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+        $students = User::whereHas('tutors', function ($query) use ($user) {
+            $query->where('tutor_id', $user->id);
+        })->select('id', 'name', 'email', 'profile_picture', 'last_login', 'created_at')
+            ->get();
+
+        return response()->json([
+            'students' => $students
+        ], 200);
+    }
+
+    /**
+     * Get the list of students assigned for given tutor id
+     */
+    public function getStudentsInfoByTutorId($tutor_id)
+    {
+        $tutor = User::find($tutor_id);
+
+        if(!$tutor || $tutor->role !== 'tutor'){
+            return response()->json(['message' => 'Invalid tutor'], 404);
+        }
+
+        return response()->json(['assignedStudents'=>$tutor->students]);
+    }
+
+    /**
+     * Get the assigned tutor info for given tutor id
+     */
+    public function getTutorInfoByStudentId($student_id)
+    {
+        $student = User::find($student_id);
+
+        if(!$student || $student->role !== 'student'){
+            return response()->json(['message' => 'Invalid Student'], 404);
+        }
+
+        return response()->json(['assignedTutor'=>$student->tutor]);
     }
 }

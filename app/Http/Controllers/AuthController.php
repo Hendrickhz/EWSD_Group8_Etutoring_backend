@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\User;
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -38,7 +39,7 @@ class AuthController extends Controller
 
             // Fetch the user and return token
             $user = User::where('email', $request->email)->first();
-
+            $user->update(['last_login'=>Carbon::now()]);
             return response()->json([
                 'user' => $user,
                 'message' => 'User Logged In Successfully',
