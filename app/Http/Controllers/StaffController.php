@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 class StaffController extends Controller
 {
     public function getAllStudents(){
-        $students = User::where('role','student')->with('tutors')->latest()->get();
+        $students = User::where('role','student')->with('tutor')->latest()->get();
 
         return response()->json([
             'students' => $students
