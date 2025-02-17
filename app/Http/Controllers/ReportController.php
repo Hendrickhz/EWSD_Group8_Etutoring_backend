@@ -34,4 +34,13 @@ class ReportController extends Controller
 
         return response()->json(['messages_last_7_days' => $count]);
     }
+
+    public function getStudentsWithNoInteraction($day){
+        $studentsWithNoInteraction = User::where('role','student')
+        ->whereDoesntHave('sentMessages',function ($query) use ($day){
+            $query->where('created_at','>=',Carbon::now()->subDays($day));
+        })->get();
+
+        return response()->json(["students_with_no_interaction_in_{$day}days" => $studentsWithNoInteraction]);
+    }
 }
