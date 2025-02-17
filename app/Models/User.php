@@ -49,11 +49,17 @@ class User extends Authenticatable
         ];
     }
 
+    // Directly get the students for a tutor
     public function students(){
-        return $this->hasMany(StudentTutor::class,'tutor_id');
+        return $this->hasManyThrough(User::class,StudentTutor::class,'tutor_id','id','id','student_id');
     }
 
     public function tutors(){
         return $this->hasOne(StudentTutor::class,'student_id');
+    }
+
+    // Directly get the tutor for a student
+    public function tutor(){
+        return $this->hasOneThrough(User::class, StudentTutor::class, 'student_id', 'id', 'id', 'tutor_id');
     }
 }

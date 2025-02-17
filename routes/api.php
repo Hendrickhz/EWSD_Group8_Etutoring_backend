@@ -21,16 +21,22 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::controller(StaffController::class)->middleware(StaffOnly::class)->prefix('staff')->group(function () {
         Route::get('/get-all-students', 'getAllStudents');
         Route::get('/get-all-tutors', 'getAllTutors');
+    Route::controller(StaffController::class)->middleware(StaffOnly::class)->prefix('staff')->group(function () {
+        Route::get('/get-all-students', 'getAllStudents');
+        Route::get('/get-all-tutors', 'getAllTutors');
     });
 
-    // Allocation, Reallocation
+    // Allocation, Reallocation Managed by Staff only
     Route::controller(AllocationController::class)->middleware(StaffOnly::class)->group(function () {
         Route::post('/allocate-student', 'allocateStudent');
         Route::post('/bulk-allocate', 'bulkAllocate');
-        Route::get('/tutor/{id}/students', 'getTutorStudents');
-        Route::get('/student/tutor-info', 'getTutorInfoForStudent')->withoutMiddleware(StaffOnly::class);
+        Route::get('/tutor/{tutor_id}/students', 'getStudentsInfoByTutorId');
+        Route::get('/student/{student_id}/tutor', 'getTutorInfoByStudentId');
         Route::delete('/remove-tutor', 'removeTutorFromStudent');
     });
+    // Get, View allocation data for logged in student / logged in tutor
+    Route::get('/student/tutor-info', [AllocationController::class, 'getTutorInfoForStudent']);
+    Route::get('/tutor/students-info', [AllocationController::class, 'getStudentsInfoTutor']);
 
     // Blogs, and comments
     Route::controller(BlogController::class)->group(function () {
