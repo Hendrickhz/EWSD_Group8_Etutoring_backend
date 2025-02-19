@@ -107,14 +107,14 @@ class AllocationController extends Controller
         // If the tutor is already full
         if ($remainingSlots <= 0) {
             return response()->json([
-                'message' => "Cannot allocate students. This tutor already has $currentCount students and cannot be allocated anymore."
+                'error' => "Cannot allocate students. This tutor already has $currentCount students and cannot be allocated anymore."
             ], 400);
         }
 
         // If the number of new students exceeds available slots
         if ($newStudentsCount > $remainingSlots) {
             return response()->json([
-                'message' => "Cannot allocate students. This tutor already has $currentCount students and can only accept $remainingSlots more."
+                'error' => "Cannot allocate students. This tutor already has $currentCount students and can only accept $remainingSlots more."
             ], 400);
         }
 
