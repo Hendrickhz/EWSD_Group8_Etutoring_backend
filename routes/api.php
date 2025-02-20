@@ -33,6 +33,21 @@ Route::middleware('auth:sanctum')->group(function () {
     // Get, View allocation data for logged in student / logged in tutor
     Route::get('/student/tutor-info', [AllocationController::class, 'getTutorInfoForStudent']);
     Route::get('/tutor/students-info', [AllocationController::class, 'getStudentsInfoTutor']);
+
+    // Schedule, Rearrange Meetings
+    Route::controller(MeetingController::class)->group(function () {
+        Route::post('/meetings/create', 'createMeeting');
+        Route::post('/meetings/request', 'requestMeeting');
+        Route::get('/meetings/{meeting_id}', 'getMeetingDetails');
+        Route::patch('/meetings/{id}/update', 'updateMeeting');
+        Route::get('/student/meetings', 'getStudentMeetings');
+        Route::get('/tutor/meetings', 'getTutorMeetings');
+
+        //for staff
+        Route::get('/staff/meetings', 'getAllMeetings');
+        Route::get('/staff/tutor/{tutorId}/meetings', 'getTutorMeetingsForStaff');
+        Route::get('/staff/student/{studentId}/meetings', 'getStudentMeetingsForStaff');
+    });
 });
 
 // Authentication
