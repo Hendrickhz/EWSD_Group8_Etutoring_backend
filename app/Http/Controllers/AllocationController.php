@@ -104,6 +104,13 @@ class AllocationController extends Controller
         $maxStudents = 20;
         $remainingSlots = $maxStudents - $currentCount;
 
+        // If there is no new student to assign
+        if ($newStudentsCount === 0) {
+            return response()->json([
+                'message' => "All the selected students are already assigned to this tutor."
+            ], 200);
+        }
+
         // If the tutor is already full
         if ($remainingSlots <= 0) {
             return response()->json([
