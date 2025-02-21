@@ -109,13 +109,30 @@ class MeetingController extends Controller
      */
     public function getMeetingDetails($meeting_id)
     {
-        $meeting = Meeting::where('id',$meeting_id)->with('tutor','student')->get();
-        if(!$meeting){
+        $meeting = Meeting::where('id', $meeting_id)->with('tutor', 'student')->get();
+        if (!$meeting) {
             return response()->json(['message' => 'Meeting not found'], 404);
         }
-        return response()->json(['meeting'=>$meeting]);
+        return response()->json(['meeting' => $meeting]);
     }
 
+    /**
+     * Delete the meeting by the created tutor
+     */
+    public function deleteMeeting($meeting_id)
+    {
+        $meeting = Meeting::find($meeting_id);
+
+        if (!$meeting) {
+            return response()->json(['error' => "Invalid Meeting"], 404);
+        }
+        if (auth()->id() !== $meeting->tutor_id) {
+            return response()->json(['error' => "Unauthorized"], 403);
+        }
+        $meeting->delete();
+        return response()->json(['message' => "Meeting is deleted successfully."], 200);
+    }
+    
     /**
      * Update the meeting information by the tutor
      */

@@ -39,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/meetings/create', 'createMeeting');
         Route::post('/meetings/request', 'requestMeeting');
         Route::get('/meetings/{meeting_id}', 'getMeetingDetails');
+        Route::delete('/meetings/{meeting_id}', 'deleteMeeting');
         Route::patch('/meetings/{id}/update', 'updateMeeting');
         Route::get('/student/meetings', 'getStudentMeetings');
         Route::get('/tutor/meetings', 'getTutorMeetings');
