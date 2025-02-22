@@ -38,6 +38,22 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/student/tutor-info', [AllocationController::class, 'getTutorInfoForStudent']);
     Route::get('/tutor/students-info', [AllocationController::class, 'getStudentsInfoTutor']);
 
+    // Schedule, Rearrange Meetings
+    Route::controller(MeetingController::class)->group(function () {
+        Route::post('/meetings/create', 'createMeeting');
+        Route::post('/meetings/request', 'requestMeeting');
+        Route::get('/meetings/{meeting_id}', 'getMeetingDetails');
+        Route::delete('/meetings/{meeting_id}', 'deleteMeeting');
+        Route::patch('/meetings/{id}/update', 'updateMeeting');
+        Route::get('/student/meetings', 'getStudentMeetings');
+        Route::get('/tutor/meetings', 'getTutorMeetings');
+
+        //for staff
+        Route::get('/staff/meetings', 'getAllMeetings');
+        Route::get('/staff/tutor/{tutorId}/meetings', 'getTutorMeetingsForStaff');
+        Route::get('/staff/student/{studentId}/meetings', 'getStudentMeetingsForStaff');
+    });
+
     // Blogs, and comments
     Route::controller(BlogController::class)->group(function () {
         Route::get('/blogs', 'index');
