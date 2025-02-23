@@ -21,9 +21,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::controller(StaffController::class)->middleware(StaffOnly::class)->prefix('staff')->group(function () {
         Route::get('/get-all-students', 'getAllStudents');
         Route::get('/get-all-tutors', 'getAllTutors');
-    Route::controller(StaffController::class)->middleware(StaffOnly::class)->prefix('staff')->group(function () {
-        Route::get('/get-all-students', 'getAllStudents');
-        Route::get('/get-all-tutors', 'getAllTutors');
     });
 
     // Allocation, Reallocation Managed by Staff only
@@ -71,7 +68,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
-});
 
 // Authentication
 Route::post('/auth/login', [AuthController::class, 'LoginUser']);
