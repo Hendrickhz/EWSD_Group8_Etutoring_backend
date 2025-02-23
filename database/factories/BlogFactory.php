@@ -26,19 +26,19 @@ class BlogFactory extends Factory
         $isTutor = $this->faker->boolean(30);
         $author = User::where('role', $isTutor ? 'tutor' : 'student')->inRandomOrder()->first();
 
-        $student_id = null;
-        if ($author->role === 'tutor') {
-            $assigned_students = StudentTutor::where('tutor_id', $author->id)->pluck('student_id')->toArray();
-            if (!empty($assigned_students) && rand(0, 1)) {
-                $student_id = $this->faker->randomElement($assigned_students);
-            }
-        }
+        // $student_id = null;
+        // if ($author->role === 'tutor') {
+        //     $assigned_students = StudentTutor::where('tutor_id', $author->id)->pluck('student_id')->toArray();
+        //     if (!empty($assigned_students) && rand(0, 1)) {
+        //         $student_id = $this->faker->randomElement($assigned_students);
+        //     }
+        // }
 
         return [
             'user_id' => $author->id,
             'title' => $this->faker->sentence(6),
             'content' => $this->faker->paragraphs(4, true),
-            'student_id' => $student_id,
+            // 'student_id' => $student_id,
         ];
     }
 
@@ -53,14 +53,14 @@ class BlogFactory extends Factory
     {
         $commenters = [];
 
-        if ($blog->student_id) {
-            // If the blog is for a specific student, only that student can comment
-            $commenters[] = User::find($blog->student_id);
+        if ($blog->students->isNotEmpty()) {
+            // If the blog is for specific students, only those students can comment
+            $commenters = $blog->students->all();
         } else {
-            // If no student is specified, all assigned students of the tutor can comment
+            // If no student is specified (public blog), all assigned students of the tutor can comment
             if ($blog->author->role === 'tutor') {
                 $assigned_students = StudentTutor::where('tutor_id', $blog->user_id)->pluck('student_id')->toArray();
-                $commenters = array_merge($commenters, User::whereIn('id', $assigned_students)->get()->all());
+                $commenters = User::whereIn('id', $assigned_students)->get()->all();
             }
         }
 
@@ -84,5 +84,6 @@ class BlogFactory extends Factory
             }
         }
     }
+
 }
 

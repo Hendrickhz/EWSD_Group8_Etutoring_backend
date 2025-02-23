@@ -22,23 +22,27 @@ class BlogController extends Controller
             $tutor_id = StudentTutor::where('student_id', $user->id)->value('tutor_id');
             // get blogs written by the student or his assigned tutor
             $blogs = Blog::with('author','comments')->where('user_id', $user->id)
-                ->orWhere(function ($query) use ($tutor_id, $user) {
-                    $query->where('user_id', $tutor_id)
-                        ->where(function ($q) use ($user) {
-                            $q->where('student_id', $user->id)
-                                ->orWhereNull('student_id');
-                        });
-                })
+            ->orWhere(function ($query) use ($tutor_id, $user) {
+                $query->where('user_id', $tutor_id)
+                    ->where(function ($q) use ($user) {
+                        $q->whereDoesntHave('students') // Tutor's public blogs
+                            ->orWhereHas('students', function ($sq) use ($user) {
+                                $sq->where('student_id', $user->id); // Blogs assigned to this student
+                            });
+                    });
+            })
+                ->with('author','comments','students')
                 ->orderByDesc('created_at')
                 ->get();
         } elseif ($user->role === 'tutor') {
             $blogs = Blog::with('author','comments')->where('user_id', $user->id)
-                ->orWhereIn('student_id', StudentTutor::where('tutor_id', $user->id)->pluck('student_id'))
+                ->orWhereIn('user_id', StudentTutor::where('tutor_id', $user->id)->pluck('student_id'))
                 ->orderByDesc('created_at')
+                ->with('author','comments','students')
                 ->get();
 
         } else {
-            $blogs = Blog::with('author','comments')->orderByDesc('created_at')->get();
+            $blogs = Blog::with('author','comments','students')->orderByDesc('created_at')->get();
         }
 
         return response()->json(['blogs' => $blogs]);
@@ -55,15 +59,19 @@ class BlogController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'student_id' => 'nullable|exists:users,id'
+            'student_ids' => 'nullable|array',
+            'student_ids.*' => 'exists:users,id',
         ]);
 
         $blog = Blog::create([
             'user_id' => auth()->id(),
-            'student_id' => $request->student_id,
             'title' => $request->title,
             'content' => $request->content,
         ]);
+
+        if($user->role === 'tutor' && !empty($request->student_ids)){
+            $blog->students()->attach($request->student_ids);
+        }
 
         $recipients = [];
 
@@ -74,8 +82,8 @@ class BlogController extends Controller
             }
         } elseif ($user->role === 'tutor') {
             // Send to specific student or all assigned students
-            if ($blog->student_id) {
-                $recipients[] = User::find($blog->student_id)->email;
+            if (!empty($request->student_ids)) {
+                $recipients[] = User::whereIn('id',$request->student_ids)->pluck('email')->toArray();
             } else {
                 $student_ids = StudentTutor::where('tutor_id', $user->id)->pluck('student_id');
                 $recipients = User::whereIn('id', $student_ids)->pluck('email')->toArray();
@@ -93,7 +101,7 @@ class BlogController extends Controller
      */
     public function show($id)
     {
-        $blog = Blog::with('author', 'comments')->find($id);
+        $blog = Blog::with('author', 'comments','students')->find($id);
 
         if (!$blog) {
             return response()->json(['message' => 'Blog not found'], 404);
@@ -121,12 +129,22 @@ class BlogController extends Controller
 
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
-            'content' => 'sometimes|string'
+            'content' => 'sometimes|string',
+            'student_ids' => 'nullable|array',
+            'student_ids.*' => 'exists:users,id',
         ]);
 
         $blog->update($validated);
 
-        return response()->json(['message' => 'Blog updated successfully', 'blog' => $blog]);
+        if($user->role === 'tutor' && isset($validated['student_ids'])){
+            $assignedStudents  = StudentTutor::where('tutor_id',$user->id)->pluck('student_id')->toArray();
+            $validStudentIds = array_intersect($validated['student_ids'],$assignedStudents );
+            
+            $blog->students()->sync($validStudentIds);
+        }
+
+
+        return response()->json(['message' => 'Blog updated successfully', 'blog' => $blog->load('students')]);
     }
 
     /**
@@ -157,7 +175,7 @@ class BlogController extends Controller
         if (!$user) {
             return response()->json(['error' => 'Invalid User'], 404);
         }
-        $blogs = Blog::where('user_id', $user->id)->with('author','comments')->latest()->get();
+        $blogs = Blog::where('user_id', $user->id)->with('author','students','comments')->latest()->get();
 
         return response()->json(['blogs' => $blogs]);
     }
