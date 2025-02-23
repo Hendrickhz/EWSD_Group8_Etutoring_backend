@@ -11,7 +11,7 @@ class Meeting extends Model
     use HasFactory;
 
     protected $fillable = [
-        'tutor_id', 'student_id', 'title', 'notes', 'type', 'location', 'meeting_link', 
+        'tutor_id', 'student_id', 'title', 'notes', 'type', 'location', 'meeting_link', 'platform', 
         'date', 'time', 'status'
     ];
 

@@ -22,10 +22,26 @@ class MeetingController extends Controller
             'notes' => 'nullable|string',
             'type' => 'required|in:in-person,virtual',
             'location' => 'nullable|string',
+            'platform' => 'nullable|string',
             'meeting_link' => 'nullable|url',
             'date' => 'required|string',
             'time' => 'required|string',
         ]);
+
+        if($request->type === 'virtual'){
+            if(empty($request->platform) || empty($request->meeting_link)){
+                return response()->json([
+                    'error' => 'For virtual meetings, platform and meeting link are required.'
+                ],422);
+            }
+        }
+        if($request->type === 'in-person'){
+            if(empty($request->location)){
+                return response()->json([
+                    'error' => 'For physical meetings, location is required.'
+                ],422);
+            }
+        }
 
         if ($request->user()->role !== 'tutor' || !$this->isAssigned($request->user()->id, $request->student_id)) {
             return response()->json(['message' => 'Unauthorized'], 403);
@@ -34,12 +50,12 @@ class MeetingController extends Controller
 
         $meeting = Meeting::create([
             'tutor_id' => $request->user()->id,
-            // 'tutor_id' => 4,
             'student_id' => $request->student_id,
             'title' => $request->title,
             'notes' => $request->notes,
             'type' => $request->type,
             'location' => $request->location,
+            'platform' => $request->platform,
             'meeting_link' => $request->meeting_link,
             'date' => $request->date,
             'time' => $request->time,
@@ -138,17 +154,6 @@ class MeetingController extends Controller
      */
     public function updateMeeting(Request $request, $id)
     {
-        $request->validate([
-            'title' => 'sometimes|string|max:255',
-            'notes' => 'nullable|string',
-            'type' => 'sometimes|in:in-person,virtual',
-            'location' => 'nullable|string',
-            'meeting_link' => 'nullable|url',
-            'date' => 'sometimes|string',
-            'time' => 'sometimes|string',
-            'status' => 'sometimes|in:pending,confirmed,cancelled',
-            'student_id' => 'sometimes|exists:users,id',
-        ]);
 
         $meeting = Meeting::find($id);
         if (!$meeting) {
@@ -157,6 +162,41 @@ class MeetingController extends Controller
 
         if ($request->user()->id !== $meeting->tutor_id) {
             return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'title' => 'sometimes|string|max:255',
+            'notes' => 'nullable|string',
+            'type' => 'sometimes|in:in-person,virtual',
+            'location' => 'nullable|string',
+            'platform' => 'nullable|string',
+            'meeting_link' => 'nullable|url',
+            'date' => 'sometimes|string',
+            'time' => 'sometimes|string',
+            'status' => 'sometimes|in:pending,confirmed,cancelled',
+            'student_id' => 'sometimes|exists:users,id',
+        ]);
+
+        $type = $request->type ?? $meeting->type;
+
+        if($type === 'virtual'){
+            if(empty($request->platform) && empty($meeting->platform)){
+                return response()->json([
+                    'error' => 'For virtual meetings, platform is required.'
+                ],422);
+            }
+            if(empty($request->meeting_link) && empty($meeting->meeting_link)){
+                return response()->json([
+                    'error' => 'For virtual meetings, meeting link is required.'
+                ],422);
+            }
+        }
+        if($type === 'in-person'){
+            if(empty($request->location) && empty($meeting->location)){
+                return response()->json([
+                    'error' => 'For physical meetings, location is required.'
+                ],422);
+            }
         }
 
         if (!empty($request->student_id) && !$this->isAssigned($request->user()->id, $request->student_id)) {
@@ -168,6 +208,7 @@ class MeetingController extends Controller
             'notes',
             'type',
             'location',
+            'platform',
             'meeting_link',
             'time',
             'date',

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->enum('type',['virtual','in-person']);
             $table->string('location')->nullable();
+            $table->string('platform')->nullable();
             $table->string('meeting_link')->nullable();
             $table->date('date')->nullable();
             $table->time('time')->nullable();

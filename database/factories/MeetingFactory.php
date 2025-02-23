@@ -26,15 +26,27 @@ class MeetingFactory extends Factory
             ->inRandomOrder()
             ->first();
 
+        $type = $this->faker->randomElement(['in-person', 'virtual']);
+        $location = null;
+        $platform = null;
+        $meeting_link = null;
+        if ($type === 'in-person') {
+            $location = $this->faker->randomElement(['Room 101', 'Room 202', 'Jupiter Room']);
+        } else {
+            $platform = $this->faker->randomElement(['Zoom', 'Teams', 'Google Meet']);
+            $meeting_link = $this->faker->url();
+        }
+
         return [
             'tutor_id' => $tutor->id,
             'student_id' => $student->id,
             'title' => $this->faker->sentence(6),
             'date' => $this->faker->date(),
             'time' => $this->faker->time(),
-            'type' => $this->faker->randomElement(['in-person', 'virtual']),
-            'location' => $this->faker->randomElement(['Room 101', 'Room 202', 'Online']),
-            'meeting_link' => $this->faker->url(),
+            'type' => $type,
+            'location' => $location,
+            'platform' => $platform,
+            'meeting_link' => $meeting_link,
             'notes' => $this->faker->paragraph(),
             'status' => $this->faker->randomElement(['pending', 'confirmed', 'cancelled']),
         ];
