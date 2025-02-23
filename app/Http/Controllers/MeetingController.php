@@ -147,6 +147,7 @@ class MeetingController extends Controller
             'date' => 'sometimes|string',
             'time' => 'sometimes|string',
             'status' => 'sometimes|in:pending,confirmed,cancelled',
+            'student_id' => 'sometimes|exists:users,id',
         ]);
 
         $meeting = Meeting::find($id);
@@ -158,6 +159,10 @@ class MeetingController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        if (!empty($request->student_id) && !$this->isAssigned($request->user()->id, $request->student_id)) {
+            return response()->json(['message' => 'Invalid Student'], 404);
+        }
+
         $meeting->update($request->only([
             'title',
             'notes',
@@ -166,7 +171,8 @@ class MeetingController extends Controller
             'meeting_link',
             'time',
             'date',
-            'status'
+            'status',
+            'student_id'
         ]));
 
         $student = User::find($meeting->student_id);
