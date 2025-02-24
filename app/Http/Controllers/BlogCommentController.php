@@ -32,8 +32,13 @@ class BlogCommentController extends Controller
         ]);
     }
 
-    public function index(Blog $blog)
+    public function index($blog_id)
     {
+        $blog = Blog::find($blog_id);
+        if (!$blog) {
+            return response()->json(['error' => 'Invalid blog'], 404);
+        }
+        
         return response()->json([
             'comments' => $blog->comments()->with('user')->latest()->get()
         ]);
