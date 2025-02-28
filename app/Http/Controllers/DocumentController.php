@@ -6,10 +6,11 @@ use App\Models\Document;
 use App\Models\StudentTutor;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class DocumentController extends Controller
 {
-
     public function index()
     {
         $user = auth()->user();
@@ -42,12 +43,14 @@ class DocumentController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:500',
         ]);
+
         if (!in_array($user->role, ['student', 'tutor'])) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
         $file = $request->file('file');
         $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $originalName = Str::slug($originalName, '_');
         $extension = $file->getClientOriginalExtension();
         $filename = $originalName . '_' . time() . '_' . uniqid() . '.' . $extension;
         $path = $file->storeAs("documents/{$user->id}", $filename, 'public');
@@ -99,8 +102,8 @@ class DocumentController extends Controller
         $document->description = $request->input('description');
 
         if ($request->hasFile('file')) {
-            if (file_exists(storage_path('app/public/' . $document->path))) {
-                unlink(storage_path('app/public/' . $document->path));
+            if ($document->path && Storage::disk('public')->exists($document->path)) {
+                Storage::disk('public')->delete($document->path);
             }
 
             $file = $request->file('file');
@@ -108,6 +111,7 @@ class DocumentController extends Controller
             if ($file) {
 
                 $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $originalName = Str::slug($originalName, '_');
                 $extension = $file->getClientOriginalExtension();
                 $filename = $originalName . '_' . time() . '_' . uniqid() . '.' . $extension;
 

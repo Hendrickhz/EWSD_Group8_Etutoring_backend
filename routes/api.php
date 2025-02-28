@@ -63,15 +63,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/blogs/{blog_id}', 'destroy'); //delete blogs
     });
 
-
-
     Route::controller(BlogCommentController::class)->group(function () {
         Route::post('/blogs/{blog_id}/comments', 'store'); //post comments
         Route::get('/blogs/{blog_id}/comments', 'index');
         Route::put('/comments/{comment_id}', 'update'); //update comments
         Route::delete('/comments/{comment_id}', 'destroy'); //delete comments
     });
-
 
     //Documents, and comments
     Route::controller(DocumentController::class)->group(function () {
@@ -83,7 +80,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/documents/student-documents', 'viewStudentsDocuments'); //staff only view all student documents
         Route::get('/documents/tutor/{tutor_id}/assigned-student-documents', 'getAssignedStudentsDocuments'); //get assigned students' documents by tutor id
     });
-
 
     Route::controller(DocumentCommentController::class)->group(function () {
         Route::post('/documents/{id}/comments', 'storeDocumentComment'); //add comments
@@ -97,5 +93,3 @@ Route::middleware('auth:sanctum')->group(function () {
 // Authentication
 Route::post('/auth/login', [AuthController::class, 'LoginUser']);
 Route::middleware('auth:sanctum')->post('/auth/logout', [AuthController::class, 'logoutUser']);
-
-  // git push origin feature/document
