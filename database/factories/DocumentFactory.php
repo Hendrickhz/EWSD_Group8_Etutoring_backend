@@ -6,6 +6,8 @@ use App\Models\DocumentComment;
 use App\Models\StudentTutor;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Http\File;
+use Illuminate\Support\Facades\Storage;
 
 class DocumentFactory extends Factory
 {
@@ -14,53 +16,26 @@ class DocumentFactory extends Factory
     public function definition()
     {
         $user = User::inRandomOrder()->first();
-        $extension = $this->faker->randomElement(['pdf', 'docx', 'jpg', 'png']);
+        $extension = $this->faker->randomElement(['pdf', 'png']);
         $filename = $this->faker->word . '.' . $extension;
-        $path = "documents/{$user->id}/{$filename}";
+
+        $directory = "documents/{$user->id}";
+        Storage::disk('public')->makeDirectory($directory);
+        $dummyFilePath = resource_path("dummy_files/sample.{$extension}");
+        if (!file_exists($dummyFilePath)) {
+            file_put_contents($dummyFilePath, 'This is a dummy file for testing.');
+        }
+        // Store the dummy file in storage
+        $storedPath = Storage::disk('public')->putFileAs($directory, new File($dummyFilePath), $filename);
 
         return [
             'user_id'  => $user->id,
             'filename' => $filename,
             'title'      => $this->faker->sentence,  
             'description'=> $this->faker->optional()->text(500),
-            'path'     => $path
+            'path'     => $storedPath
         ];
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     public function configure()
     {
@@ -77,7 +52,7 @@ class DocumentFactory extends Factory
     private function generateDocumentComments(Document $document)
     {
         // Retrieve the author of the document
-        $author = $document->user; // The user who created the document (could be a tutor or student)
+        $author = $document->user;
         $commenters = [];
 
         // If the document is for a specific student (not public), only assigned students or tutors can comment
