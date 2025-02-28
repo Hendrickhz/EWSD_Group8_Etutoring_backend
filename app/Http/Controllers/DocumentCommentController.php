@@ -2,56 +2,59 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Blog;
-use App\Models\BlogComment;
-use Egulias\EmailValidator\Parser\Comment;
+use App\Models\Document;
+use App\Models\DocumentComment;
 use Illuminate\Http\Request;
 
-class BlogCommentController extends Controller
+class DocumentCommentController extends Controller
 {
-    public function store(Request $request, $blog_id)
+
+    public function storeDocumentComment(Request $request, $document_id)
     {
         $request->validate([
-            'comment' => 'required|string'
+            'comment' => 'required|string' 
         ]);
-
-        $blog = Blog::find($blog_id);
-        if (!$blog) {
-            return response()->json(['error' => 'Invalid blog'], 404);
+    
+        $document = Document::find($document_id);
+        if (!$document) {
+            return response()->json(['error' => 'Invalid document'], 404);
         }
-
-        $comment = BlogComment::create([
-            'blog_id' => $blog->id,
+    
+        $comment = DocumentComment::create([
+            'document_id' => $document->id,
             'user_id' => auth()->id(),
-            'comment' => $request->comment
+            'comment' => $request->comment 
         ]);
-
+    
         return response()->json([
             'message' => 'Comment added successfully',
             'comment' => $comment
         ]);
     }
 
-    public function index($blog_id)
+   
+    public function getDocumentComments($document_id) //get comments of each document
     {
-        $blog = Blog::find($blog_id);
-        if (!$blog) {
-            return response()->json(['error' => 'Invalid blog'], 404);
+        $document = Document::find($document_id);
+        if (!$document) {
+            return response()->json(['error' => 'Invalid document'], 404);
         }
-        
+
         return response()->json([
-            'comments' => $blog->comments()->with('user')->latest()->get()
+            'comments' => $document->comments()->with('user')->latest()->get()
         ]);
     }
 
-    public function update(Request $request, $comment_id)
+
+    public function updateDocumentComment(Request $request, $comment_id) //update document comments
     {
         $user = auth()->user();
 
-        $comment = BlogComment::find($comment_id);
+        $comment = DocumentComment::find($comment_id);
         if (!$comment) {
             return response()->json(['error' => 'Invalid Comment'], 404);
         }
+
 
         if ($comment->user_id !== $user->id) {
             return response()->json(['error' => 'Unauthorized'], 403);
@@ -66,15 +69,17 @@ class BlogCommentController extends Controller
         return response()->json(['message' => 'Comment updated successfully', 'comment' => $comment]);
     }
 
-    public function destroy($comment_id)
+  
+    public function deleteDocumentComment($comment_id) //delete document comments
     {
         $user = auth()->user();
 
-        $comment = BlogComment::find($comment_id);
+        $comment = DocumentComment::find($comment_id);
         if (!$comment) {
             return response()->json(['error' => 'Invalid Comment'], 404);
         }
 
+   
         if ($comment->user_id !== $user->id) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
