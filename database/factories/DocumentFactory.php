@@ -13,16 +13,9 @@ class DocumentFactory extends Factory
 
     public function definition()
     {
-  
         $user = User::inRandomOrder()->first();
-
-       
         $extension = $this->faker->randomElement(['pdf', 'docx', 'jpg', 'png']);
-
-    
         $filename = $this->faker->word . '.' . $extension;
-
-    
         $path = "documents/{$user->id}/{$filename}";
 
         return [

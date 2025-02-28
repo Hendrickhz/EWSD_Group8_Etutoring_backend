@@ -32,7 +32,6 @@ class DocumentCommentController extends Controller
         ]);
     }
 
-   
     public function getDocumentComments($document_id) //get comments of each document
     {
         $document = Document::find($document_id);
@@ -45,7 +44,6 @@ class DocumentCommentController extends Controller
         ]);
     }
 
-
     public function updateDocumentComment(Request $request, $comment_id) //update document comments
     {
         $user = auth()->user();
@@ -54,7 +52,6 @@ class DocumentCommentController extends Controller
         if (!$comment) {
             return response()->json(['error' => 'Invalid Comment'], 404);
         }
-
 
         if ($comment->user_id !== $user->id) {
             return response()->json(['error' => 'Unauthorized'], 403);
@@ -69,16 +66,13 @@ class DocumentCommentController extends Controller
         return response()->json(['message' => 'Comment updated successfully', 'comment' => $comment]);
     }
 
-  
     public function deleteDocumentComment($comment_id) //delete document comments
     {
         $user = auth()->user();
-
         $comment = DocumentComment::find($comment_id);
         if (!$comment) {
             return response()->json(['error' => 'Invalid Comment'], 404);
         }
-
    
         if ($comment->user_id !== $user->id) {
             return response()->json(['error' => 'Unauthorized'], 403);
