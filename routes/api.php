@@ -7,6 +7,7 @@ use App\Http\Controllers\BlogController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\StaffController;
 use App\Http\Middleware\StaffOnly;
+use App\Http\Middleware\UpdateLastActive;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -38,7 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Schedule, Rearrange Meetings
     Route::controller(MeetingController::class)->group(function () {
         Route::post('/meetings/create', 'createMeeting');
-        Route::post('/meetings/request', 'requestMeeting');
+        Route::post('/meetings/request', 'requestMeeting')->middleware(UpdateLastActive::class);
         Route::get('/meetings/{meeting_id}', 'getMeetingDetails');
         Route::delete('/meetings/{meeting_id}', 'deleteMeeting');
         Route::patch('/meetings/{id}/update', 'updateMeeting');
@@ -56,15 +57,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/blogs', 'index');
         Route::get('/blogs/{blog_id}', 'show');
         Route::get('/blogs/user/{user_id}', 'getBlogsByUser');
-        Route::post('/blogs', 'store');
-        Route::put('/blogs/{blog_id}', 'update');
-        Route::delete('/blogs/{blog_id}', 'destroy');
+        Route::post('/blogs', 'store')->middleware(UpdateLastActive::class);
+        Route::put('/blogs/{blog_id}', 'update')->middleware(UpdateLastActive::class);
+        Route::delete('/blogs/{blog_id}', 'destroy')->middleware(UpdateLastActive::class);
     });
     Route::controller(BlogCommentController::class)->group(function () {
-        Route::post('/blogs/{blog_id}/comments', 'store');
+        Route::post('/blogs/{blog_id}/comments', 'store')->middleware(UpdateLastActive::class);
         Route::get('/blogs/{blog_id}/comments', 'index');
-        Route::put('/comments/{comment_id}', 'update');
-        Route::delete('/comments/{comment_id}', 'destroy');
+        Route::put('/comments/{comment_id}', 'update')->middleware(UpdateLastActive::class);
+        Route::delete('/comments/{comment_id}', 'destroy')->middleware(UpdateLastActive::class);
     });
 });
 
