@@ -25,6 +25,6 @@ class Document extends Model
 
     public function getFullUrlAttribute()
     {
-        return 'http:127.0.0.1:8000'.Storage::url($this->path);
+        return asset("storage/{$this->path}");
     }
 }
