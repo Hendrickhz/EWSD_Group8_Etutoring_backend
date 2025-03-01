@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Mail\InactiveStudentNotificationMail;
+use App\Mail\InactiveStudentsMail;
 use App\Models\StudentTutor;
 use App\Models\User;
 use Carbon\Carbon;
@@ -39,11 +40,22 @@ class NotifyInactiveStudents extends Command
         })
         ->get();
 
+        $tutorsWithInactiveStudents = [];
+
+
         foreach($inactiveStudents as $student){
             $tutor = StudentTutor::where('student_id',$student->id)->first()?->tutor;
 
             if($tutor){
-                Mail::to([$student->email,$tutor->email])->send(new InactiveStudentNotificationMail($student,$tutor));
+                Mail::to([$student->email])->send(new InactiveStudentNotificationMail($student,$tutor));
+                $tutorsWithInactiveStudents[$tutor->id][] = $student;
+            }
+        }
+
+        foreach($tutorsWithInactiveStudents as $tutorId=>$students){
+            $tutor = User::find($tutorId);
+            if($tutor){
+                Mail::to($tutor->email)->send(new InactiveStudentsMail($tutor,$students));
             }
         }
 
