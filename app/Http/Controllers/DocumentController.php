@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\DocumentNotificationMail;
 use App\Models\Document;
 use App\Models\StudentTutor;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -62,6 +64,22 @@ class DocumentController extends Controller
             'description' => $request->input('description'),
             'path' => $path,
         ]);
+
+        $recipients = [];
+
+        if ($user->role === 'student') {
+            $tutor_id = StudentTutor::where('student_id', $user->id)->value('tutor_id');
+            if ($tutor_id) {
+                $recipients[] = User::find($tutor_id)->email;
+            }
+        } elseif ($user->role === 'tutor') {
+            $student_ids = StudentTutor::where('tutor_id', $user->id)->pluck('student_id');
+            $recipients = User::whereIn('id', $student_ids)->pluck('email')->toArray();
+
+        }
+        foreach ($recipients as $recipient) {
+            Mail::to($recipient)->send(new DocumentNotificationMail($document, $user));
+        }
 
         return response()->json([
             'message' => 'Document uploaded successfully',
