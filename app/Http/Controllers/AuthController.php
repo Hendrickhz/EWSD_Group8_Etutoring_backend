@@ -3,57 +3,74 @@
 namespace App\Http\Controllers;
 use App\Models\User;
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
+  
+
     public function loginUser(Request $request)
-    {
-        try {
-            // Validate user input
-            $validateUser = Validator::make($request->all(), 
-            [
-                'email' => 'required|email',
-                'password' => 'required'
-            ]);
+{
+    try {
 
-            // If validation fails, return errors
-            if($validateUser->fails()){
-                return response()->json([
-                    
-                    'message' => 'validation error',
-                    'errors' => $validateUser->errors()
-                ], 401);
-            }
+        $validateUser = Validator::make($request->all(), 
+        [
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
 
-            // Attempt login
-            if(!Auth::attempt($request->only(['email', 'password']))){
-                return response()->json([
-                   
-                    'message' => 'Email & Password does not match with our record.',
-                ], 401);
-            }
 
-            // Fetch the user and return token
-            $user = User::where('email', $request->email)->first();
-
+        if($validateUser->fails()){
             return response()->json([
-                'user' => $user,
-                'message' => 'User Logged In Successfully',
-                'token' => $user->createToken("API TOKEN")->plainTextToken
-            ], 200);
-
-        } catch (\Throwable $th) {
-            // Handle any exceptions
-            return response()->json([
-                
-                'message' => $th->getMessage()
-            ], 500);
+                'message' => 'Validation error',
+                'errors' => $validateUser->errors()
+            ], 401);
         }
-    }
 
+
+        if(!Auth::attempt($request->only(['email', 'password']))){
+            return response()->json([
+                'message' => 'Email & Password do not match with our records.',
+            ], 401);
+        }
+
+ 
+        $user = User::where('email', $request->email)->first();
+
+
+        $firstLogin = false;
+        $lastLogin = $user->last_login;
+
+
+        if (!$lastLogin) {
+            $firstLogin = true;
+        }
+
+
+        $user->update(['last_login' => Carbon::now()]);
+
+
+        $message = $firstLogin 
+            ? 'Welcome! This is your first login.' 
+            : 'Welcome back! Your last login was on ' . $lastLogin->format('l, F j, Y \a\t g:i A');
+
+    
+        return response()->json([
+            'user' => $user,
+            'first_login' => $firstLogin,  
+            'message' => $message,
+            'token' => $user->createToken("API TOKEN")->plainTextToken
+        ], 200);
+
+    } catch (\Throwable $th) {
+        return response()->json([ 
+            'message' => $th->getMessage()
+        ], 500);
+    }
+}
 
 
     public function logoutUser(Request $request)
