@@ -23,13 +23,25 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $role = $this->faker->randomElement(['staff', 'tutor', 'student']);
+        $firstName = $this->faker->firstName();
+        $lastName = $this->faker->lastName();
+        $email = strtolower($firstName . '.' . $lastName . '@eduspark.edu.mm');
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
+            'name' => "$firstName $lastName",
+            'email' => $email,
             'email_verified_at' => now(),
+            'role' => $role,
+            'profile_picture' => $this->getAvatarUrl($firstName),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
+    }
+
+    public function getAvatarUrl($firstName)
+    {
+        $set = $this->faker->randomElement(['set1', 'set3', 'set4']);
+        return "https://robohash.org/set_$set/" . $firstName;
     }
 
     /**
@@ -37,7 +49,7 @@ class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'email_verified_at' => null,
         ]);
     }
