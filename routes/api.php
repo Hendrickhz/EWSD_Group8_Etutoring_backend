@@ -11,6 +11,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StaffController;
 use App\Http\Middleware\StaffOnly;
+use App\Http\Middleware\UpdateLastActive;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -42,13 +43,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Schedule, Rearrange Meetings
     Route::controller(MeetingController::class)->group(function () {
-        Route::post('/meetings/create', 'createMeeting'); //create meetings by tutor
-        Route::post('/meetings/request', 'requestMeeting'); //request meetings by student
-        Route::get('/meetings/{meeting_id}', 'getMeetingDetails'); //view meeting details
-        Route::delete('/meetings/{meeting_id}', 'deleteMeeting'); //delete meetings
-        Route::patch('/meetings/{id}/update', 'updateMeeting'); //update meetings
-        Route::get('/student/meetings', 'getStudentMeetings'); //view student meetings
-        Route::get('/tutor/meetings', 'getTutorMeetings'); //view tutor meetings
+        Route::post('/meetings/create', 'createMeeting');
+        Route::post('/meetings/request', 'requestMeeting')->middleware(UpdateLastActive::class);
+        Route::get('/meetings/{meeting_id}', 'getMeetingDetails');
+        Route::delete('/meetings/{meeting_id}', 'deleteMeeting');
+        Route::patch('/meetings/{id}/update', 'updateMeeting');
+        Route::get('/student/meetings', 'getStudentMeetings');
+        Route::get('/tutor/meetings', 'getTutorMeetings');
 
         //for staff
         Route::get('/staff/meetings', 'getAllMeetings'); //get all meeting information
@@ -59,25 +60,26 @@ Route::middleware('auth:sanctum')->group(function () {
     // Blogs, and comments
     Route::controller(BlogController::class)->group(function () {
         Route::get('/blogs', 'index');
-        Route::get('/blogs/{blog_id}', 'show'); //view blogs
-        Route::get('/blogs/user/{user_id}', 'getBlogsByUser'); //view blogs by user
-        Route::post('/blogs', 'store'); //create blogs
-        Route::put('/blogs/{blog_id}', 'update'); //update blogs
-        Route::delete('/blogs/{blog_id}', 'destroy'); //delete blogs
+        Route::get('/blogs/{blog_id}', 'show');
+        Route::get('/blogs/user/{user_id}', 'getBlogsByUser');
+        Route::post('/blogs', 'store')->middleware(UpdateLastActive::class);
+        Route::put('/blogs/{blog_id}', 'update')->middleware(UpdateLastActive::class);
+        Route::delete('/blogs/{blog_id}', 'destroy')->middleware(UpdateLastActive::class);
     });
 
     Route::controller(BlogCommentController::class)->group(function () {
+        Route::post('/blogs/{blog_id}/comments', 'store')->middleware(UpdateLastActive::class);
         Route::post('/blogs/{blog_id}/comments', 'store'); //post comments
         Route::get('/blogs/{blog_id}/comments', 'index');
-        Route::put('/comments/{comment_id}', 'update'); //update comments
-        Route::delete('/comments/{comment_id}', 'destroy'); //delete comments
+        Route::put('/comments/{comment_id}', 'update')->middleware(UpdateLastActive::class); //update comments
+        Route::delete('/comments/{comment_id}', 'destroy')->middleware(UpdateLastActive::class); //delete comments
     });
 
     //Documents, and comments
     Route::controller(DocumentController::class)->group(function () {
-        Route::post('/documents/upload', 'upload'); //upload documents
-        Route::post('/documents/{id}/update', 'update'); //update documents
-        Route::delete('/documents/{id}/delete', 'delete'); //delete dpciments
+        Route::post('/documents/upload', 'upload')->middleware(UpdateLastActive::class); //upload documents
+        Route::post('/documents/{id}/update', 'update')->middleware(UpdateLastActive::class); //update documents
+        Route::delete('/documents/{id}/delete', 'delete')->middleware(UpdateLastActive::class); //delete dpciments
         Route::get('/documents', 'index'); //get all documents 
         Route::get('/documents/tutor-documents', 'viewTutorsDocuments'); //staff only view all tutor documents
         Route::get('/documents/student-documents', 'viewStudentsDocuments'); //staff only view all student documents
@@ -85,10 +87,10 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::controller(DocumentCommentController::class)->group(function () {
-        Route::post('/documents/{id}/comments', 'storeDocumentComment'); //add comments
+        Route::post('/documents/{id}/comments', 'storeDocumentComment')->middleware(UpdateLastActive::class); //add comments
         Route::get('/documents/{id}/comments', 'getDocumentComments'); //get comments
-        Route::put('/comments/{comment_id}', 'updateDocumentComment'); //update comments
-        Route::delete('/comments/{comment_id}', 'deleteDocumentComment'); //delete comment
+        Route::put('/comments/{comment_id}', 'updateDocumentComment')->middleware(UpdateLastActive::class); //update comments
+        Route::delete('/comments/{comment_id}', 'deleteDocumentComment')->middleware(UpdateLastActive::class); //delete comment
     });
 
     // Messages
