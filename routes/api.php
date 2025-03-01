@@ -4,7 +4,10 @@ use App\Http\Controllers\AllocationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BlogCommentController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\DocumentCommentController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\StaffController;
 use App\Http\Middleware\StaffOnly;
 use App\Http\Middleware\UpdateLastActive;
@@ -20,21 +23,22 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // For Staff
     Route::controller(StaffController::class)->middleware(StaffOnly::class)->prefix('staff')->group(function () {
-        Route::get('/get-all-students', 'getAllStudents');
-        Route::get('/get-all-tutors', 'getAllTutors');
+        Route::get('/get-all-students', 'getAllStudents'); //get all student information
+        Route::get('/get-all-tutors', 'getAllTutors'); //get all tutor information
     });
 
     // Allocation, Reallocation Managed by Staff only
     Route::controller(AllocationController::class)->middleware(StaffOnly::class)->group(function () {
-        Route::post('/allocate-student', 'allocateStudent');
-        Route::post('/bulk-allocate', 'bulkAllocate');
-        Route::get('/tutor/{tutor_id}/students', 'getStudentsInfoByTutorId');
-        Route::get('/student/{student_id}/tutor', 'getTutorInfoByStudentId');
+        Route::post('/allocate-student', 'allocateStudent'); //allocate student to a tutor
+        Route::post('/bulk-allocate', 'bulkAllocate'); //bulk allocation of students to a tutor 
+        Route::get('/tutor/{tutor_id}/students', 'getStudentsInfoByTutorId'); //getting assigned student info by tutor id
+        Route::get('/student/{student_id}/tutor', 'getTutorInfoByStudentId'); //getting tutor info by assigned student id
         Route::delete('/remove-tutor', 'removeTutorFromStudent');
     });
+
     // Get, View allocation data for logged in student / logged in tutor
-    Route::get('/student/tutor-info', [AllocationController::class, 'getTutorInfoForStudent']);
-    Route::get('/tutor/students-info', [AllocationController::class, 'getStudentsInfoTutor']);
+    Route::get('/student/tutor-info', [AllocationController::class, 'getTutorInfoForStudent']); //get tutor info for student
+    Route::get('/tutor/students-info', [AllocationController::class, 'getStudentsInfoTutor']); //get student info for student
 
     // Schedule, Rearrange Meetings
     Route::controller(MeetingController::class)->group(function () {
@@ -47,9 +51,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/tutor/meetings', 'getTutorMeetings');
 
         //for staff
-        Route::get('/staff/meetings', 'getAllMeetings');
-        Route::get('/staff/tutor/{tutorId}/meetings', 'getTutorMeetingsForStaff');
-        Route::get('/staff/student/{studentId}/meetings', 'getStudentMeetingsForStaff');
+        Route::get('/staff/meetings', 'getAllMeetings'); //get all meeting information
+        Route::get('/staff/tutor/{tutorId}/meetings', 'getTutorMeetingsForStaff'); //get tutor meetings for staff
+        Route::get('/staff/student/{studentId}/meetings', 'getStudentMeetingsForStaff'); //get student meetings for staff
     });
 
     // Blogs, and comments
@@ -61,11 +65,42 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/blogs/{blog_id}', 'update')->middleware(UpdateLastActive::class);
         Route::delete('/blogs/{blog_id}', 'destroy')->middleware(UpdateLastActive::class);
     });
+
     Route::controller(BlogCommentController::class)->group(function () {
         Route::post('/blogs/{blog_id}/comments', 'store')->middleware(UpdateLastActive::class);
+        Route::post('/blogs/{blog_id}/comments', 'store'); //post comments
         Route::get('/blogs/{blog_id}/comments', 'index');
-        Route::put('/comments/{comment_id}', 'update')->middleware(UpdateLastActive::class);
-        Route::delete('/comments/{comment_id}', 'destroy')->middleware(UpdateLastActive::class);
+        Route::put('/comments/{comment_id}', 'update')->middleware(UpdateLastActive::class); //update comments
+        Route::delete('/comments/{comment_id}', 'destroy')->middleware(UpdateLastActive::class); //delete comments
+    });
+
+    //Documents, and comments
+    Route::controller(DocumentController::class)->group(function () {
+        Route::post('/documents/upload', 'upload')->middleware(UpdateLastActive::class); //upload documents
+        Route::post('/documents/{id}/update', 'update')->middleware(UpdateLastActive::class); //update documents
+        Route::delete('/documents/{id}/delete', 'delete')->middleware(UpdateLastActive::class); //delete dpciments
+        Route::get('/documents', 'index'); //get all documents 
+        Route::get('/documents/tutor-documents', 'viewTutorsDocuments'); //staff only view all tutor documents
+        Route::get('/documents/student-documents', 'viewStudentsDocuments'); //staff only view all student documents
+        Route::get('/documents/tutor/{tutor_id}/assigned-student-documents', 'getAssignedStudentsDocuments'); //get assigned students' documents by tutor id
+    });
+
+    Route::controller(DocumentCommentController::class)->group(function () {
+        Route::post('/documents/{id}/comments', 'storeDocumentComment')->middleware(UpdateLastActive::class); //add comments
+        Route::get('/documents/{id}/comments', 'getDocumentComments'); //get comments
+        Route::put('/comments/{comment_id}', 'updateDocumentComment')->middleware(UpdateLastActive::class); //update comments
+        Route::delete('/comments/{comment_id}', 'deleteDocumentComment')->middleware(UpdateLastActive::class); //delete comment
+    });
+
+    // Messages
+    Route::controller(MessageController::class)->group(function () {
+        Route::post('/messages/send', 'sendMessage');
+        Route::put('/messages/{message_id}', 'updateMessage');
+        Route::delete('/messages/{message_id}', 'deleteMessage');
+        Route::get('/messages/users/{user_id}', 'getMessages');
+        Route::get('/messages/unread/count', 'getUnreadMessagesCount');
+        Route::get('/messages/unread/count/{user_id}', 'getUnreadMessagesCountByUser');
+        Route::post('/messages/read/{user_id}', 'markAsRead');
     });
 });
 
@@ -73,4 +108,3 @@ Route::middleware('auth:sanctum')->group(function () {
 // Authentication
 Route::post('/auth/login', [AuthController::class, 'LoginUser']);
 Route::middleware('auth:sanctum')->post('/auth/logout', [AuthController::class, 'logoutUser']);
-

@@ -180,3 +180,5 @@ class BlogController extends Controller
         return response()->json(['blogs' => $blogs]);
     }
 }
+
+//testing
