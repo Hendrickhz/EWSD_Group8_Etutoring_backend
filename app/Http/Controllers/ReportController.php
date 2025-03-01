@@ -21,11 +21,23 @@ class ReportController extends Controller
 
     public function getAverageMessagesPerTutor()
     {
-        $tutors = User::where('role', 'tutor')->withCount('sentMessages')->get();
+        // Get all tutors
+        $tutors = User::where('role', 'tutor')->get();
 
-        $average = round($tutors->avg('sent_messages_count'));
+        // Count total messages per tutor
+        $totalMessages = 0;
+        $tutorCount = $tutors->count();
 
-        return response()->json(['average_messages_per_tutor' => $average]);
+        foreach ($tutors as $tutor) {
+            $totalMessages += Message::where('sender_id', $tutor->id)->orWhere('receiver_id', $tutor->id)->count();
+        }
+
+        // Avoid division by zero
+        $average = $tutorCount > 0 ? round($totalMessages / $tutorCount) : 0;
+
+        return response()->json([
+            'average_messages_per_tutor' => $average
+        ]);
     }
 
     public function getMessagesLast7Days()
@@ -35,11 +47,14 @@ class ReportController extends Controller
         return response()->json(['messages_last_7_days' => $count]);
     }
 
-    public function getStudentsWithNoInteraction($day){
-        $studentsWithNoInteraction = User::where('role','student')
-        ->whereDoesntHave('sentMessages',function ($query) use ($day){
-            $query->where('created_at','>=',Carbon::now()->subDays($day));
-        })->get();
+    public function getStudentsWithNoInteraction($day)
+    {
+        $studentsWithNoInteraction = User::where('role', 'student')
+            ->where(function ($query) use ($day) {
+                $query->where('last_active_at', '<', Carbon::now()->subDays($day))
+                    ->orWhereNull('last_active_at');
+            })
+            ->get();
 
         return response()->json(["students_with_no_interaction_in_{$day}days" => $studentsWithNoInteraction]);
     }

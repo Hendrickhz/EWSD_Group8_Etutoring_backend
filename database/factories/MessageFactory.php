@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Message;
 use App\Models\StudentTutor;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -48,5 +49,20 @@ class MessageFactory extends Factory
             'created_at' => $createdAt,
             'updated_at' => $createdAt,
         ];
+    }
+
+    public function configure()
+    {
+        return $this->afterCreating(function (Message $message) {
+            $sender = $message->sender;
+
+            $messageCreatedAt = $message->created_at;
+
+            if($sender->last_active_at === null || $sender->last_active_at < $messageCreatedAt){
+                $sender->update([
+                    'last_active_at' => $messageCreatedAt
+                ]);
+            }
+        });
     }
 }

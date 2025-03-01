@@ -26,19 +26,13 @@ class BlogFactory extends Factory
         $isTutor = $this->faker->boolean(30);
         $author = User::where('role', $isTutor ? 'tutor' : 'student')->inRandomOrder()->first();
 
-        // $student_id = null;
-        // if ($author->role === 'tutor') {
-        //     $assigned_students = StudentTutor::where('tutor_id', $author->id)->pluck('student_id')->toArray();
-        //     if (!empty($assigned_students) && rand(0, 1)) {
-        //         $student_id = $this->faker->randomElement($assigned_students);
-        //     }
-        // }
-
+        $createdAt = $this->faker->dateTimeBetween('-1 month', 'now');
         return [
             'user_id' => $author->id,
             'title' => $this->faker->sentence(6),
             'content' => $this->faker->paragraphs(4, true),
-            // 'student_id' => $student_id,
+            'created_at' => $createdAt,
+            'updated_at' => $createdAt,
         ];
     }
 
@@ -46,6 +40,16 @@ class BlogFactory extends Factory
     {
         return $this->afterCreating(function (Blog $blog) {
             $this->generateComments($blog);
+
+            $author = $blog->author;
+
+            $blogCreatedAt = $blog->created_at;
+
+            if($author->last_active_at === null || $author->last_active_at < $blogCreatedAt){
+                $author->update([
+                    'last_active_at' => $blogCreatedAt
+                ]);
+            }
         });
     }
 

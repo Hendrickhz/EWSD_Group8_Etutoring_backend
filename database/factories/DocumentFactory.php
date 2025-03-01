@@ -15,7 +15,7 @@ class DocumentFactory extends Factory
 
     public function definition()
     {
-        $user = User::inRandomOrder()->first();
+        $user = User::whereNot('role','staff')->inRandomOrder()->first();
         $extension = $this->faker->randomElement(['pdf', 'png']);
         $filename = $this->faker->word . '.' . $extension;
 
@@ -27,13 +27,15 @@ class DocumentFactory extends Factory
         }
         // Store the dummy file in storage
         $storedPath = Storage::disk('public')->putFileAs($directory, new File($dummyFilePath), $filename);
-
+        $createdAt = $this->faker->dateTimeBetween('-1 month', 'now');
         return [
             'user_id'  => $user->id,
             'filename' => $filename,
             'title'      => $this->faker->sentence,  
             'description'=> $this->faker->optional()->text(500),
-            'path'     => $storedPath
+            'path'     => $storedPath,
+            'created_at' => $createdAt,
+            'updated_at' => $createdAt,
         ];
     }
 
@@ -41,9 +43,18 @@ class DocumentFactory extends Factory
     {
         return $this->afterCreating(function (Document $document) {
             $this->generateDocumentComments($document);  // Call our new method to generate comments
+
+            $user = $document->user;
+
+            $documentCreatedAt = $document->created_at;
+
+            if($user->last_active_at === null || $user->last_active_at < $documentCreatedAt){
+                $user->update([
+                    'last_active_at' => $documentCreatedAt
+                ]);
+            }
         });
     }
-
     /**
      * Generates comments for a given document.
      *
