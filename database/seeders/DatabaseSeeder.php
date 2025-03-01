@@ -16,7 +16,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             MeetingSeeder::class,
             BlogSeeder::class,
-            DocumentSeeder::class
+            DocumentSeeder::class,
+            MessageSeeder::class
         ]);
     }
 }

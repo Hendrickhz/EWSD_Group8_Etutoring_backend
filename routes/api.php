@@ -7,6 +7,7 @@ use App\Http\Controllers\BlogController;
 use App\Http\Controllers\DocumentCommentController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\StaffController;
 use App\Http\Middleware\StaffOnly;
 use Illuminate\Http\Request;
@@ -33,6 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/student/{student_id}/tutor', 'getTutorInfoByStudentId'); //getting tutor info by assigned student id
         Route::delete('/remove-tutor', 'removeTutorFromStudent');
     });
+
     // Get, View allocation data for logged in student / logged in tutor
     Route::get('/student/tutor-info', [AllocationController::class, 'getTutorInfoForStudent']); //get tutor info for student
     Route::get('/tutor/students-info', [AllocationController::class, 'getStudentsInfoTutor']); //get student info for student
@@ -55,7 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Blogs, and comments
     Route::controller(BlogController::class)->group(function () {
-        Route::get('/blogs', 'index'); 
+        Route::get('/blogs', 'index');
         Route::get('/blogs/{blog_id}', 'show'); //view blogs
         Route::get('/blogs/user/{user_id}', 'getBlogsByUser'); //view blogs by user
         Route::post('/blogs', 'store'); //create blogs
@@ -86,6 +88,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/documents/{id}/comments', 'getDocumentComments'); //get comments
         Route::put('/comments/{comment_id}', 'updateDocumentComment'); //update comments
         Route::delete('/comments/{comment_id}', 'deleteDocumentComment'); //delete comment
+    });
+
+    // Messages
+    Route::controller(MessageController::class)->group(function () {
+        Route::post('/messages/send', 'sendMessage');
+        Route::put('/messages/{message_id}', 'updateMessage');
+        Route::delete('/messages/{message_id}', 'deleteMessage');
+        Route::get('/messages/users/{user_id}', 'getMessages');
+        Route::get('/messages/unread/count', 'getUnreadMessagesCount');
+        Route::get('/messages/unread/count/{user_id}', 'getUnreadMessagesCountByUser');
+        Route::post('/messages/read/{user_id}', 'markAsRead');
     });
 });
 
