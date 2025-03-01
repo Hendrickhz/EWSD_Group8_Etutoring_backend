@@ -68,4 +68,5 @@ class User extends Authenticatable
     public function tutor(){
         return $this->hasOneThrough(User::class, StudentTutor::class, 'student_id', 'id', 'id', 'tutor_id');
     }
+
 }

@@ -8,6 +8,7 @@ use App\Http\Controllers\DocumentCommentController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StaffController;
 use App\Http\Middleware\StaffOnly;
 use App\Http\Middleware\UpdateLastActive;
@@ -101,6 +102,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/messages/unread/count', 'getUnreadMessagesCount');
         Route::get('/messages/unread/count/{user_id}', 'getUnreadMessagesCountByUser');
         Route::post('/messages/read/{user_id}', 'markAsRead');
+    });
+
+
+    // Reports
+    Route::controller(ReportController::class)->prefix('reports')->group(function(){
+        Route::middleware(StaffOnly::class)->group(function(){
+            Route::get('/messages/average-per-tutor','getAverageMessagesPerTutor');
+            Route::get('/messages/last-7-days','getMessagesLast7Days');
+            Route::get('/students/without-tutor','getStudentsWithoutTutor');
+            Route::get('/students/no-interaction/{day}','getStudentsWithNoInteraction');
+        });
     });
 });
 
