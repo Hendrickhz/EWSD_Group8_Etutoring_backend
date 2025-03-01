@@ -112,6 +112,11 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/messages/last-7-days','getMessagesLast7Days');
             Route::get('/students/without-tutor','getStudentsWithoutTutor');
             Route::get('/students/no-interaction/{day}','getStudentsWithNoInteraction');
+
+            Route::get('/send-emails/inactive-students',function(){
+                Artisan::call('notify:inactive-students');
+                return response()->json(['message' => 'Emails sent to inactive students successfully']);
+            });
         });
     });
 });
