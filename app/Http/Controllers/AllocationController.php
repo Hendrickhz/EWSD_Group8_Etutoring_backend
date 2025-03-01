@@ -28,6 +28,16 @@ class AllocationController extends Controller
             return response()->json(['error' => 'Invalid student or tutor role.'], 400);
         }
 
+        $existingAssignment = StudentTutor::where('student_id', $student->id)
+            ->where('tutor_id', $tutor->id)
+            ->first();
+
+        if ($existingAssignment) {
+            return response()->json([
+                'message' => 'This student is already assigned to this tutor. No changes made.'
+            ]);
+        }
+
         // Check if tutor already has 20 students
         $studentCount = StudentTutor::where('tutor_id', $tutor->id)->count();
         if ($studentCount >= 20) {
@@ -82,17 +92,40 @@ class AllocationController extends Controller
             return response()->json(['error' => 'Invalid tutor'], 400);
         }
 
-        // Count current students assigned to the tutor
-        $currentStudentsCount = StudentTutor::where('tutor_id', $tutor->id)->count();
+        // Get currently assigned students
+        $currentStudents = StudentTutor::where('tutor_id', $tutor->id)->pluck('student_id')->toArray();
+        $currentCount = count($currentStudents);
 
-        // Check if the bulk allocation exceeds the maximum student limit
-        if (($currentStudentsCount + count($request->student_ids)) > 20) {
+        // Filter out students who are already assigned to this tutor
+        $newStudentIds = array_diff($request->student_ids, $currentStudents);
+        $newStudentsCount = count($newStudentIds);
+
+        // Maximum student limit per tutor
+        $maxStudents = 20;
+        $remainingSlots = $maxStudents - $currentCount;
+
+        // If there is no new student to assign
+        if ($newStudentsCount === 0) {
             return response()->json([
-                'message' => "Cannot allocate students. This tutor already has $currentStudentsCount students and can only accept " . (20 - $currentStudentsCount) . " more."
+                'message' => "All the selected students are already assigned to this tutor."
+            ], 200);
+        }
+
+        // If the tutor is already full
+        if ($remainingSlots <= 0) {
+            return response()->json([
+                'error' => "Cannot allocate students. This tutor already has $currentCount students and cannot be allocated anymore."
             ], 400);
         }
 
-        foreach ($request->student_ids as $student_id) {
+        // If the number of new students exceeds available slots
+        if ($newStudentsCount > $remainingSlots) {
+            return response()->json([
+                'error' => "Cannot allocate students. This tutor already has $currentCount students and can only accept $remainingSlots more."
+            ], 400);
+        }
+
+        foreach ($newStudentIds as $student_id) {
             $student = User::find($student_id);
             if ($student->role !== 'student') {
                 continue; //Skip Invalid entries
@@ -176,11 +209,11 @@ class AllocationController extends Controller
     {
         $tutor = User::find($tutor_id);
 
-        if(!$tutor || $tutor->role !== 'tutor'){
+        if (!$tutor || $tutor->role !== 'tutor') {
             return response()->json(['message' => 'Invalid tutor'], 404);
         }
 
-        return response()->json(['assignedStudents'=>$tutor->students]);
+        return response()->json(['assignedStudents' => $tutor->students]);
     }
 
     /**
@@ -190,10 +223,10 @@ class AllocationController extends Controller
     {
         $student = User::find($student_id);
 
-        if(!$student || $student->role !== 'student'){
+        if (!$student || $student->role !== 'student') {
             return response()->json(['message' => 'Invalid Student'], 404);
         }
 
-        return response()->json(['assignedTutor'=>$student->tutor]);
+        return response()->json(['assignedTutor' => $student->tutor]);
     }
 }
