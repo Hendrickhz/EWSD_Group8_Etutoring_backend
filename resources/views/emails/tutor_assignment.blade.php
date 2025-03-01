@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Tutor Assignment Notification</title>
 </head>
+
 <body>
     <p>Hello {{ $recipientName }},</p>
 
@@ -14,7 +16,10 @@
         <p>Please log in to the eTutoring system to manage your student list.</p>
     @endif
 
+    <br>
+    <br>
     <p>Thank you,</p>
-    <p><strong>eTutoring System</strong></p>
+    <p><strong>EduSpark eTutoring System</strong></p>
 </body>
+
 </html>
