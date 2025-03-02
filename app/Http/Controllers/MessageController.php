@@ -20,13 +20,26 @@ class MessageController extends Controller
             'content' => 'required|string|max:1000'
         ]);
 
+        $lastMessage = Message::where(function ($query) use($request){
+            $query->where('receiver_id',$request->receiver_id)
+            ->where('sender_id',auth()->id());
+        })->orWhere(function ($query) use($request){
+            $query->where('sender_id',$request->receiver_id)
+            ->where('receiver_id',auth()->id());
+        })->latest()->first();
+        
+
         $message = Message::create([
             'sender_id' => auth()->id(),
             'receiver_id' => $request->receiver_id,
             'content' => $request->content,
         ]);
 
-        Mail::to($message->receiver->email)->send(new MessageNotificationMail($message));
+        $twoHoursAgo = now()->subHours(2);
+        // Mail Notification to the receiver will only be sent if the last message between them is more than 2 hour ago
+        if (!$lastMessage || $lastMessage->created_at->lt($twoHoursAgo)) {
+            Mail::to($message->receiver->email)->send(new MessageNotificationMail($message));
+        }
 
         return response()->json([
             'message' => 'Message sent successfully',
