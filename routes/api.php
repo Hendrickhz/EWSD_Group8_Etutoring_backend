@@ -14,6 +14,7 @@ use App\Http\Middleware\StaffOnly;
 use App\Http\Middleware\UpdateLastActive;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+// use Jenssegers\Agent\Agent;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -112,7 +113,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/messages/last-7-days','getMessagesLast7Days');
             Route::get('/students/without-tutor','getStudentsWithoutTutor');
             Route::get('/students/no-interaction/{day}','getStudentsWithNoInteraction');
-
+            Route::get('/most-used-browsers','getMostUsedBrowsers');
             Route::get('/send-emails/inactive-students',function(){
                 Artisan::call('notify:inactive-students');
                 return response()->json(['message' => 'Emails sent to inactive students successfully']);
@@ -125,3 +126,14 @@ Route::middleware('auth:sanctum')->group(function () {
 // Authentication
 Route::post('/auth/login', [AuthController::class, 'LoginUser']);
 Route::middleware('auth:sanctum')->post('/auth/logout', [AuthController::class, 'logoutUser']);
+
+// testing route for browser
+// Route::get('/test/',function(Request $request){
+//     $agent = new Agent();
+//     $user_agent = $agent->browser();
+//     $ip_address = $request->ip();
+//     return response()->json([
+//         'user_agent'=>$user_agent,
+//         'ip_address'=>$ip_address
+//     ]);
+// });

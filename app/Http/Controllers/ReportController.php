@@ -58,4 +58,15 @@ class ReportController extends Controller
 
         return response()->json(["students_with_no_interaction_in_{$day}days" => $studentsWithNoInteraction]);
     }
+
+    public function getMostUsedBrowsers()
+    {
+        $browsers = User::select('browser', \DB::raw('count(*) as count'))
+            ->whereNot('browser')
+            ->groupBy('browser')
+            ->orderByDesc('count')
+            ->get();
+
+        return response()->json(['browser_usage' => $browsers]);
+    }
 }

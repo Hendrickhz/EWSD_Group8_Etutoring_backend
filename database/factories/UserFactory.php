@@ -32,6 +32,7 @@ class UserFactory extends Factory
             'email' => $email,
             'email_verified_at' => now(),
             'role' => $role,
+            'browser' => $this->faker->randomElement(['Chrome','Safari','Firefox','Edge']),
             'profile_picture' => $this->getAvatarUrl($firstName),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
