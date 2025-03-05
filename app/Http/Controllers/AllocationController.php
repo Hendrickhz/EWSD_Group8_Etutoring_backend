@@ -55,9 +55,9 @@ class AllocationController extends Controller
             ]);
 
             //Send email to the student
-            Mail::to($student->email)->send(new TutorAssignmentMail($student, $tutor, 'student'));
+            Mail::to($student->email)->send(new TutorAssignmentMail($student, $tutor, 'student', true));
             // Send email to the tutor
-            Mail::to($tutor->email)->send(new TutorAssignmentMail($tutor, $student, 'tutor'));
+            Mail::to($tutor->email)->send(new TutorAssignmentMail($tutor, $student, 'tutor', true));
 
             return response()->json(['message' => 'Student reallocated sucessfully.']);
         } else {

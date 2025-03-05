@@ -19,14 +19,17 @@ class TutorAssignmentMail extends Mailable
 
     public $role;
 
+    public $isReallocated;
+
     /**
      * Create a new message instance.
      */
-    public function __construct($recipient, $otherUser, $role)
+    public function __construct($recipient, $otherUser, $role, $isReallocated =false)
     {
         $this->recipient = $recipient;
         $this->otherUser = $otherUser;
         $this->role = $role;
+        $this->isReallocated = $isReallocated;
     }
 
     /**
@@ -49,7 +52,8 @@ class TutorAssignmentMail extends Mailable
          with: [
             'recipientName' => $this->recipient->name,
             'otherUserName' => $this->otherUser->name,
-            'role' => $this->role
+            'role' => $this->role,
+            'isReallocated' => $this->isReallocated,
         ]
         );
     }
