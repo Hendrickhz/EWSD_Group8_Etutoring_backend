@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\RemoveAllocationMail;
 use App\Mail\TutorAssignmentMail;
 use App\Models\StudentTutor;
 use App\Models\User;
@@ -160,10 +161,23 @@ class AllocationController extends Controller
         $request->validate([
             'student_id' => 'required|exists:users,id'
         ]);
+        $student = User::find($request->student_id);
 
-        $deleted = StudentTutor::where('student_id', $request->student_id)->delete();
+        $studentTutor = StudentTutor::where('student_id', $student->id)->first();
+    
+        if (!$studentTutor) {
+            return response()->json(['message' => 'No Tutor found for this student.'], 404);
+        }
+    
+        $tutor = User::find($studentTutor->tutor_id);
+    
+        $deleted = $studentTutor->delete();
 
         if ($deleted) {
+             //Send email to the student
+             Mail::to($student->email)->send(new RemoveAllocationMail($student, $tutor, 'student'));
+             // Send email to the tutor
+             Mail::to($tutor->email)->send(new RemoveAllocationMail($tutor, $student, 'tutor'));
             return response()->json(['message' => 'Tutor removed from the student successfully.']);
         } else {
             return response()->json(['message' => 'No Tutor found for this student.'], 404);
