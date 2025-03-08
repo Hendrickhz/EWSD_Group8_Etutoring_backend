@@ -9,27 +9,22 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class TutorAssignmentMail extends Mailable
+class RemoveAllocationMail extends Mailable
 {
     use Queueable, SerializesModels;
-
     public $recipient;
 
     public $otherUser;
 
     public $role;
-
-    public $isReallocated;
-
     /**
      * Create a new message instance.
      */
-    public function __construct($recipient, $otherUser, $role, $isReallocated =false)
+    public function __construct($recipient, $otherUser, $role)
     {
         $this->recipient = $recipient;
         $this->otherUser = $otherUser;
         $this->role = $role;
-        $this->isReallocated = $isReallocated;
     }
 
     /**
@@ -38,7 +33,7 @@ class TutorAssignmentMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Tutor Assignment Notification',
+            subject: 'Update on Tutor-Student Assignment',
         );
     }
 
@@ -48,13 +43,12 @@ class TutorAssignmentMail extends Mailable
     public function content(): Content
     {
         return new Content(
-         'emails.tutor_assignment',
-         with: [
-            'recipientName' => $this->recipient->name,
-            'otherUserName' => $this->otherUser->name,
-            'role' => $this->role,
-            'isReallocated' => $this->isReallocated,
-        ]
+            view: 'emails.remove_allocation',
+            with: [
+                'recipientName' => $this->recipient->name,
+                'otherUserName' => $this->otherUser->name,
+                'role' => $this->role
+            ]
         );
     }
 
