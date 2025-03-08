@@ -105,12 +105,15 @@ class DocumentController extends Controller
     
         $filePath = storage_path("app/public/{$document->path}");
         $fileType = file_exists($filePath) ? mime_content_type($filePath) : null;
+        $fileSize = file_exists($filePath) ? round(filesize($filePath) / 1048576, 2) : null;
     
         return response()->json([
             'document' => $document,
-            'file_type' => $fileType,
+            'user' => $document->user
         ]);
     }
+
+
     public function update(Request $request, $id)
     {
         $user = auth()->user();
