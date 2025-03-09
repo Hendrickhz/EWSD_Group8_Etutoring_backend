@@ -34,6 +34,30 @@ class DocumentController extends Controller
                 ->orderByDesc('created_at')
                 ->get();
         }
+    
+        // Transform documents to include file type and file size
+        $documents->transform(function ($document) {
+            $filePath = storage_path("app/public/{$document->path}");
+            $fileType = file_exists($filePath) ? mime_content_type($filePath) : null;
+            $fileSize = file_exists($filePath) ? round(filesize($filePath) / 1048576, 2) : null; // Shows in megabytes
+    
+            return [
+                'id' => $document->id,
+                'user_id' => $document->user_id,
+                'filename' => $document->filename,
+                'title' => $document->title,
+                'description' => $document->description,
+                'path' => $document->path,
+                'file_url' => asset("storage/{$document->path}"),
+                'file_type' => $fileType,
+                'file_size_mb' => $fileSize,
+                'created_at' => $document->created_at,
+                'updated_at' => $document->updated_at,
+                'user' => $document->user,
+                'comments' => $document->comments,
+            ];
+        });
+    
         return response()->json(['documents' => $documents]);
     }
 
@@ -68,7 +92,7 @@ class DocumentController extends Controller
         // Get file properties
         $filePath = storage_path("app/public/{$path}");
         $fileType = file_exists($filePath) ? mime_content_type($filePath) : null;
-        $fileSize = file_exists($filePath) ? round(filesize($filePath) / 1048576, 2) : null; // Convert bytes to MB, rounded to 2 decimal places
+        $fileSize = file_exists($filePath) ? round(filesize($filePath) / 1048576, 2) : null; //Shows in megabytes
     
         $recipients = [];
         if ($user->role === 'student') {
@@ -95,7 +119,6 @@ class DocumentController extends Controller
     }
 
 
-
     public function show($id)
     {
         $document = Document::with('user')->find($id);
@@ -109,7 +132,10 @@ class DocumentController extends Controller
     
         return response()->json([
             'document' => $document,
-            'user' => $document->user
+            'user' => $document->user,
+            'file_type' => $fileType,
+            'file_size_mb' => $fileSize,
+            'file_url' => asset("storage/{$document->path}")
         ]);
     }
 
@@ -118,53 +144,54 @@ class DocumentController extends Controller
     {
         $user = auth()->user();
         $document = Document::find($id);
-
+    
         if (!$document) {
             return response()->json(['error' => 'Document not found'], 404);
         }
-
+    
         if ($document->user_id !== $user->id) {
             return response()->json(['error' => 'Unauthorized, only the publisher of the document can edit'], 403);
         }
-
+    
         $request->validate([
             'file' => 'nullable|file|mimes:pdf,docx,jpg,png|max:5120',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:500',
         ]);
-
+    
         $document->title = $request->input('title');
         $document->description = $request->input('description');
-
+    
         if ($request->hasFile('file')) {
+            // Delete old file if exists
             if ($document->path && Storage::disk('public')->exists($document->path)) {
                 Storage::disk('public')->delete($document->path);
             }
-
+    
             $file = $request->file('file');
-
-            if ($file) {
-
-                $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $originalName = Str::slug($originalName, '_');
-                $extension = $file->getClientOriginalExtension();
-                $filename = $originalName . '_' . time() . '_' . uniqid() . '.' . $extension;
-
-                $path = $file->storeAs("documents/{$user->id}", $filename, 'public');
-
-                $document->filename = $filename;
-                $document->path = $path;
-            } else {
-                return response()->json(['error' => 'File upload failed'], 400);
-            }
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $originalName = Str::slug($originalName, '_');
+            $extension = $file->getClientOriginalExtension();
+            $filename = $originalName . '_' . time() . '_' . uniqid() . '.' . $extension;
+            $path = $file->storeAs("documents/{$user->id}", $filename, 'public');
+    
+            $document->filename = $filename;
+            $document->path = $path;
         }
-
+    
         $document->save();
-
+    
+ 
+        $filePath = storage_path("app/public/{$document->path}");
+        $fileType = file_exists($filePath) ? mime_content_type($filePath) : null;
+        $fileSize = file_exists($filePath) ? round(filesize($filePath) / 1048576, 2) : null; // File size in MB
+    
         return response()->json([
             'message' => 'Document updated successfully',
             'document' => $document,
-            'file_url' => asset("storage/{$document->path}")
+            'file_url' => asset("storage/{$document->path}"),
+            'file_type' => $fileType,
+            'file_size_mb' => $fileSize,
         ], 200);
     }
 
@@ -192,17 +219,41 @@ class DocumentController extends Controller
     public function getDocumentsByUserId(Request $request, $user_id)
     {
         $user = User::find($user_id);
-
+    
         if (!$user) {
             return response()->json(['error' => 'Invalid User'], 404);
         }
-
+    
         $documents = Document::with('user', 'comments')
             ->where('user_id', $user->id)
             ->orderByDesc('created_at')
             ->get();
+    
+        $documents->transform(function ($document) {
+            $filePath = storage_path("app/public/{$document->path}");
+            $fileType = file_exists($filePath) ? mime_content_type($filePath) : null;
+            $fileSize = file_exists($filePath) ? round(filesize($filePath) / 1048576, 2) : null; // Shows in megabytes
+    
+            return [
+                'id' => $document->id,
+                'user_id' => $document->user_id,
+                'filename' => $document->filename,
+                'title' => $document->title,
+                'description' => $document->description,
+                'path' => $document->path,
+                'file_url' => asset("storage/{$document->path}"),
+                'file_type' => $fileType,
+                'file_size_mb' => $fileSize,
+                'created_at' => $document->created_at,
+                'updated_at' => $document->updated_at,
+                'user' => $document->user,
+                'comments' => $document->comments,
+            ];
+        });
+    
         return response()->json(['documents' => $documents]);
     }
+
 
     public function viewTutorsDocuments() //view all teachers uploaded documents 
     {

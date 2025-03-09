@@ -16,7 +16,7 @@ class UpdateLastActive
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(Auth::check() && Auth::user()->role === 'student'){
+        if(Auth::check() && Auth::user()->role !== 'staff'){
             Auth::user()->update(['last_active_at'=>now()]);
         }
         return $next($request);
