@@ -32,7 +32,7 @@ class UserFactory extends Factory
             'email' => $email,
             'email_verified_at' => now(),
             'role' => $role,
-            'browser' => $this->faker->randomElement(['Chrome','Safari','Firefox','Edge']),
+            'browser' => $this->faker->randomElement(['Chrome', 'Safari', 'Firefox', 'Edge']),
             'profile_picture' => $this->getAvatarUrl($firstName),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
@@ -42,7 +42,8 @@ class UserFactory extends Factory
     public function getAvatarUrl($firstName)
     {
         $set = $this->faker->randomElement(['set1', 'set3', 'set4']);
-        return "https://robohash.org/set_$set/" . $firstName;
+        $bgSet = $this->faker->randomElement(['bg1', 'bg2']);
+        return "https://robohash.org/set_$set/" . $firstName . "?bgset=$bgSet ";
     }
 
     /**
