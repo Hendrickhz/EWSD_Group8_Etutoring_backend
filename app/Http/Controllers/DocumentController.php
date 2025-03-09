@@ -37,7 +37,7 @@ class DocumentController extends Controller
         return response()->json(['documents' => $documents]);
     }
 
-    public function upload(Request $request) //document upload with maximum 5120kb
+    public function upload(Request $request)
     {
         $user = auth()->user();
         $request->validate([
@@ -45,18 +45,18 @@ class DocumentController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:500',
         ]);
-
+    
         if (!in_array($user->role, ['student', 'tutor'])) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
-
+    
         $file = $request->file('file');
         $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $originalName = Str::slug($originalName, '_');
         $extension = $file->getClientOriginalExtension();
         $filename = $originalName . '_' . time() . '_' . uniqid() . '.' . $extension;
         $path = $file->storeAs("documents/{$user->id}", $filename, 'public');
-
+    
         $document = Document::create([
             'user_id' => $user->id,
             'filename' => $filename,
@@ -64,9 +64,13 @@ class DocumentController extends Controller
             'description' => $request->input('description'),
             'path' => $path,
         ]);
-
+    
+        // Get file properties
+        $filePath = storage_path("app/public/{$path}");
+        $fileType = file_exists($filePath) ? mime_content_type($filePath) : null;
+        $fileSize = file_exists($filePath) ? round(filesize($filePath) / 1048576, 2) : null; // Convert bytes to MB, rounded to 2 decimal places
+    
         $recipients = [];
-
         if ($user->role === 'student') {
             $tutor_id = StudentTutor::where('student_id', $user->id)->value('tutor_id');
             if ($tutor_id) {
@@ -75,18 +79,22 @@ class DocumentController extends Controller
         } elseif ($user->role === 'tutor') {
             $student_ids = StudentTutor::where('tutor_id', $user->id)->pluck('student_id');
             $recipients = User::whereIn('id', $student_ids)->pluck('email')->toArray();
-
         }
+    
         foreach ($recipients as $recipient) {
             Mail::to($recipient)->send(new DocumentNotificationMail($document, $user));
         }
-
+    
         return response()->json([
             'message' => 'Document uploaded successfully',
             'document' => $document,
-            'file_url' => asset("storage/{$path}")
+            'file_url' => asset("storage/{$path}"),
+            'file_type' => $fileType,
+            'file_size_mb' => $fileSize, // File size in MB
         ], 201);
     }
+
+
 
     public function show($id)
     {
@@ -94,8 +102,17 @@ class DocumentController extends Controller
         if (!$document) {
             return response()->json(['error' => 'Document not found'], 404);
         }
-        return response()->json(['document' => $document]);
+    
+        $filePath = storage_path("app/public/{$document->path}");
+        $fileType = file_exists($filePath) ? mime_content_type($filePath) : null;
+        $fileSize = file_exists($filePath) ? round(filesize($filePath) / 1048576, 2) : null;
+    
+        return response()->json([
+            'document' => $document,
+            'user' => $document->user
+        ]);
     }
+
 
     public function update(Request $request, $id)
     {
