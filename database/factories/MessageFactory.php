@@ -41,10 +41,23 @@ class MessageFactory extends Factory
 
         $createdAt = $this->faker->dateTimeBetween('-30 days', 'now');
 
+        $messages = [
+            'Hi, can we schedule a meeting this week?',
+            'I need some help understanding the last lecture.',
+            'Great job on your recent assignment! Keep it up!',
+            'Please review my latest submission when you get a chance.',
+            'Can we go over the feedback you gave me?',
+            'I’m struggling with [Topic], can you explain it again?',
+            'Your latest blog post was helpful, thank you!',
+            'Are there any additional resources I can use for revision?',
+            'Let me know when you’re available for a quick chat.',
+            'Do we have any upcoming deadlines I should prepare for?'
+        ];
+
         return [
             'sender_id' => $sender->id,
             'receiver_id' => $receiver->id,
-            'content' => $this->faker->sentence(),
+            'content' => $this->faker->randomElement($messages),
             'is_read' => false,
             'created_at' => $createdAt,
             'updated_at' => $createdAt,

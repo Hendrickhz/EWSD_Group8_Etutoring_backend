@@ -82,6 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/documents/{id}/update', 'update')->middleware(UpdateLastActive::class); //update documents
         Route::delete('/documents/{id}/delete', 'delete')->middleware(UpdateLastActive::class); //delete dpciments
         Route::get('/documents', 'index'); //get all documents 
+        Route::get('/documents/{user_id}', 'getDocumentsByUserId'); //get all documents 
         Route::get('/documents/tutor-documents', 'viewTutorsDocuments'); //staff only view all tutor documents
         Route::get('/documents/student-documents', 'viewStudentsDocuments'); //staff only view all student documents
         Route::get('/documents/tutor/{tutor_id}/assigned-student-documents', 'getAssignedStudentsDocuments'); //get assigned students' documents by tutor id

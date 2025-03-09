@@ -26,10 +26,36 @@ class BlogFactory extends Factory
         $isTutor = $this->faker->boolean(30);
         $author = User::where('role', $isTutor ? 'tutor' : 'student')->inRandomOrder()->first();
 
+        $studentBlogTitles = [
+            'My Recent Challenges in Learning [Subject]',
+            'Feedback on My Latest Assignment',
+            'What I Learned from My Last Tutoring Session',
+            'Struggling with [Topic]: My Thoughts',
+            'How I’m Preparing for the Upcoming Exams',
+            'A Reflection on My Academic Progress',
+            'Study Techniques That Work Best for Me',
+            'Areas I Need to Improve In: A Self-Assessment',
+            'My Goals for This Semester',
+            'How My Tutor Helped Me Understand [Difficult Concept]'
+        ];
+
+        $tutorBlogTitles = [
+            'How to Improve Your Critical Thinking Skills',
+            'The Best Study Techniques for Better Retention',
+            'Common Mistakes Students Make in [Subject]',
+            'How to Prepare for Exams Without Stress',
+            'Understanding [Difficult Concept] in a Simple Way',
+            'Tips for Writing a Strong Research Paper',
+            'Why Time Management is Crucial for Academic Success',
+            'How to Ask the Right Questions During Tutoring Sessions',
+            'The Importance of Consistency in Learning',
+            'Key Skills You Need for Success in [Field of Study]'
+        ];
+
         $createdAt = $this->faker->dateTimeBetween('-1 month', 'now');
         return [
             'user_id' => $author->id,
-            'title' => $this->faker->sentence(6),
+            'title' => $this->faker->randomElement($isTutor ? $tutorBlogTitles : $studentBlogTitles),
             'content' => $this->faker->paragraphs(4, true),
             'created_at' => $createdAt,
             'updated_at' => $createdAt,
@@ -45,7 +71,7 @@ class BlogFactory extends Factory
 
             $blogCreatedAt = $blog->created_at;
 
-            if($author->last_active_at === null || $author->last_active_at < $blogCreatedAt){
+            if ($author->last_active_at === null || $author->last_active_at < $blogCreatedAt) {
                 $author->update([
                     'last_active_at' => $blogCreatedAt
                 ]);

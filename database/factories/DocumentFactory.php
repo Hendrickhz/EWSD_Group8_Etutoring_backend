@@ -1,4 +1,4 @@
-<?php 
+<?php
 namespace Database\Factories;
 
 use App\Models\Document;
@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Http\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class DocumentFactory extends Factory
 {
@@ -15,9 +16,37 @@ class DocumentFactory extends Factory
 
     public function definition()
     {
-        $user = User::whereNot('role','staff')->inRandomOrder()->first();
+        $isTutor = $this->faker->boolean(30); // 30% chance document is created by a tutor
+        $user = User::where('role', $isTutor ? 'tutor' : 'student')->inRandomOrder()->first();
+
+        $studentTitles = [
+            'My Learning Goals',
+            'Personal Study Plan',
+            'Self-Assessment Report',
+            'Weekly Study Journal',
+            'Exam Preparation Notes',
+            'Coursework Draft',
+            'Assignment Submission',
+            'Reflection on Tutor Feedback',
+            'Plan for Academic Improvement'
+        ];
+
+        $tutorTitles = [
+            'Student Progress Report',
+            'Tutoring Session Notes',
+            'Assignment Feedback',
+            'Individual Learning Plan',
+            'Exam Readiness Checklist',
+            'Educational Resources for Student',
+            'Meeting Summary with Student',
+            'Tutoring Session Agenda',
+            'End-of-Term Student Review'
+        ];
+
+        $title = $this->faker->randomElement($isTutor ? $tutorTitles : $studentTitles);
+
         $extension = $this->faker->randomElement(['pdf', 'png']);
-        $filename = $this->faker->word . '.' . $extension;
+        $filename = Str::slug($title) . "_" . uniqid() . '.' . $extension;
 
         $directory = "documents/{$user->id}";
         Storage::disk('public')->makeDirectory($directory);
@@ -29,11 +58,11 @@ class DocumentFactory extends Factory
         $storedPath = Storage::disk('public')->putFileAs($directory, new File($dummyFilePath), $filename);
         $createdAt = $this->faker->dateTimeBetween('-1 month', 'now');
         return [
-            'user_id'  => $user->id,
+            'user_id' => $user->id,
             'filename' => $filename,
-            'title'      => $this->faker->sentence,  
-            'description'=> $this->faker->optional()->text(500),
-            'path'     => $storedPath,
+            'title' => $title,
+            'description' => $this->faker->optional()->text(500),
+            'path' => $storedPath,
             'created_at' => $createdAt,
             'updated_at' => $createdAt,
         ];
@@ -48,7 +77,7 @@ class DocumentFactory extends Factory
 
             $documentCreatedAt = $document->created_at;
 
-            if($user->last_active_at === null || $user->last_active_at < $documentCreatedAt){
+            if ($user->last_active_at === null || $user->last_active_at < $documentCreatedAt) {
                 $user->update([
                     'last_active_at' => $documentCreatedAt
                 ]);

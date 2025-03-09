@@ -37,10 +37,22 @@ class MeetingFactory extends Factory
             $meeting_link = $this->faker->url();
         }
 
+        $titles = [
+            'One-on-One Tutoring Session',
+            'Weekly Progress Review',
+            'Project Discussion Meeting',
+            'Exam Preparation Session',
+            'Assignment Review Meeting',
+            'Feedback and Guidance Session',
+            'Career Counseling Meeting',
+            'Lab Report Discussion',
+            'Final Year Project Planning'
+        ];
+
         return [
             'tutor_id' => $tutor->id,
             'student_id' => $student->id,
-            'title' => $this->faker->sentence(6),
+            'title' => $this->faker->randomElement($titles),
             'date' => $this->faker->date(),
             'time' => $this->faker->time(),
             'type' => $type,

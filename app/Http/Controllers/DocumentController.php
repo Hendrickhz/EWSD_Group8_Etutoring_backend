@@ -172,6 +172,21 @@ class DocumentController extends Controller
         return response()->json(['message' => 'Document deleted successfully']);
     }
 
+    public function getDocumentsByUserId(Request $request, $user_id)
+    {
+        $user = User::find($user_id);
+
+        if (!$user) {
+            return response()->json(['error' => 'Invalid User'], 404);
+        }
+
+        $documents = Document::with('user', 'comments')
+            ->where('user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->get();
+        return response()->json(['documents' => $documents]);
+    }
+
     public function viewTutorsDocuments() //view all teachers uploaded documents 
     {
         $user = auth()->user();
