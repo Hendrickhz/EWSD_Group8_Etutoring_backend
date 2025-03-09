@@ -70,10 +70,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::controller(BlogCommentController::class)->group(function () {
         Route::post('/blogs/{blog_id}/comments', 'store')->middleware(UpdateLastActive::class);
-        Route::post('/blogs/{blog_id}/comments', 'store'); //post comments
+        // Route::post('/blogs/{blog_id}/comments', 'store'); //post comments
         Route::get('/blogs/{blog_id}/comments', 'index');
-        Route::put('/comments/{comment_id}', 'update')->middleware(UpdateLastActive::class); //update comments
-        Route::delete('/comments/{comment_id}', 'destroy')->middleware(UpdateLastActive::class); //delete comments
+        Route::put('/blogs/comments/{comment_id}', 'update'); //update comments
+        Route::delete('/blogs/comments/{comment_id}', 'destroy')->middleware(UpdateLastActive::class); //delete comments
     });
 
     //Documents, and comments
@@ -91,8 +91,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::controller(DocumentCommentController::class)->group(function () {
         Route::post('/documents/{id}/comments', 'storeDocumentComment')->middleware(UpdateLastActive::class); //add comments
         Route::get('/documents/{id}/comments', 'getDocumentComments'); //get comments
-        Route::put('/comments/{comment_id}', 'updateDocumentComment')->middleware(UpdateLastActive::class); //update comments
-        Route::delete('/comments/{comment_id}', 'deleteDocumentComment')->middleware(UpdateLastActive::class); //delete comment
+        Route::put('/documents/comments/{comment_id}', 'updateDocumentComment')->middleware(UpdateLastActive::class); //update comments
+        Route::delete('/documents/comments/{comment_id}', 'deleteDocumentComment')->middleware(UpdateLastActive::class); //delete comment
     });
 
     // Messages
