@@ -154,11 +154,14 @@ class MessageController extends Controller
         if (!$message) {
             return response()->json(['message' => 'Invalid Message'], 404);
         }
-
+    
         if ($message->sender_id !== auth()->id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
-
+    
+     
+        $message->delete();
+    
         return response()->json(['message' => 'Message deleted successfully']);
     }
 }
