@@ -49,7 +49,15 @@ class ReportController extends Controller
 
     public function getStudentsWithNoInteraction($day)
     {
+        $user = auth()->user();
+        $assignedStudentIds = [];
+        if ($user->role === 'tutor') {
+            $assignedStudentIds = StudentTutor::where('tutor_id', $user->id)->pluck('student_id');
+        }
         $studentsWithNoInteraction = User::where('role', 'student')
+            ->when($user->role === 'tutor', function ($query) use ($assignedStudentIds) {
+                $query->whereIn('id', $assignedStudentIds);
+            })
             ->where(function ($query) use ($day) {
                 $query->where('last_active_at', '<', Carbon::now()->subDays($day))
                     ->orWhereNull('last_active_at');
