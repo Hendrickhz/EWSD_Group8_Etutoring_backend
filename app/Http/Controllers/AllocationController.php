@@ -208,7 +208,7 @@ class AllocationController extends Controller
         }
         $students = User::whereHas('tutors', function ($query) use ($user) {
             $query->where('tutor_id', $user->id);
-        })->select('id', 'name', 'email', 'profile_picture', 'last_login', 'created_at','last_active_at')
+        })
             ->get();
 
         return response()->json([
