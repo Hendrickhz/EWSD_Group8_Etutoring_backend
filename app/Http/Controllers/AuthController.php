@@ -57,6 +57,7 @@ class AuthController extends Controller
                 'user' => $user,
                 'first_login' => $firstLogin,
                 'message' => $message,
+                'last_login' => $lastLogin,
                 'token' => $user->createToken("API TOKEN")->plainTextToken
             ], 200);
 
